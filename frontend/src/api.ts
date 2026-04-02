@@ -1,7 +1,7 @@
 const BASE = '/api'
 
-export async function fetchJSON<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE}${path}`)
+export async function fetchJSON<T>(path: string, method: 'GET' | 'POST' = 'GET'): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, { method })
   if (!res.ok) throw new Error(`API error: ${res.status}`)
   return res.json()
 }
@@ -55,13 +55,23 @@ export interface TotalPrediction {
   total_capacity_kw: number
 }
 
+export interface WeatherSummaryItem {
+  street: string
+  current_text: string
+  current_icon: number
+  next_hour_text: string | null
+  next_hour_icon: number | null
+  weather_change: boolean
+}
+
 export const api = {
   getSummary: () => fetchJSON<PVSummary>('/pv-users/summary'),
   getAggregations: () => fetchJSON<StreetAggregation[]>('/pv-users/aggregation'),
   getStreetPower: (street: string) =>
     fetchJSON<{ street: string; predictions: PowerPrediction[] }>(`/forecast/power/${encodeURIComponent(street)}`),
   getTotalPower: () => fetchJSON<TotalPrediction[]>('/forecast/total'),
-  evaluateWarnings: () => fetchJSON<{ total_warnings: number; warnings: WarningRecord[] }>('/warning/evaluate'),
+  evaluateWarnings: () => fetchJSON<{ total_warnings: number; warnings: WarningRecord[] }>('/warning/evaluate', 'POST'),
   getCurrentWarnings: () => fetchJSON<WarningRecord[]>('/warning/current'),
   getClearskyCurve: () => fetchJSON<{ date: string; curve: Record<string, number> }>('/forecast/curve'),
+  getWeatherSummary: () => fetchJSON<WeatherSummaryItem[]>('/weather/summary'),
 }

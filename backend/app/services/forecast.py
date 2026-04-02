@@ -102,11 +102,13 @@ class ForecastService:
         hour_clearsky: dict[str, float] = {}
 
         for street, predictions in all_predictions.items():
+            agg = self.aggregation_service.get_street_aggregation(street)
+            street_capacity = agg.total_capacity_kw if agg else 0
             for p in predictions:
                 hour_totals[p.time] = hour_totals.get(p.time, 0) + p.predicted_power_kw
+                # 晴空出力 = 街道容量 × 晴空比例（不受天气影响）
                 hour_clearsky[p.time] = hour_clearsky.get(p.time, 0) + (
-                    p.clearsky_ratio * p.predicted_power_kw / max(p.weather_factor, 0.01)
-                    if p.weather_factor > 0 else 0
+                    street_capacity * p.clearsky_ratio
                 )
 
         total_capacity = self.aggregation_service.get_total_capacity_kw()

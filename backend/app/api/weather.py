@@ -24,6 +24,43 @@ async def get_all_forecasts():
     return await weather_service.get_all_streets_forecast()
 
 
+@router.get("/summary")
+async def get_weather_summary():
+    """获取所有街道的轻量天气摘要，用于地图展示"""
+    all_forecasts = await weather_service.get_all_streets_forecast()
+    summary = []
+    for street, forecast in all_forecasts.items():
+        hourly = forecast.hourly
+        if not hourly:
+            continue
+
+        current = hourly[0]
+        next_hour = hourly[1] if len(hourly) > 1 else None
+
+        # 判断未来2小时内天气是否变化（比较前2个小时的天气文字）
+        weather_change = False
+        for i in range(1, min(len(hourly), 3)):
+            if hourly[i].text != current.text:
+                weather_change = True
+                break
+
+        entry = {
+            "street": street,
+            "current_text": current.text,
+            "current_icon": current.icon,
+        }
+        if next_hour:
+            entry["next_hour_text"] = next_hour.text
+            entry["next_hour_icon"] = next_hour.icon
+        else:
+            entry["next_hour_text"] = None
+            entry["next_hour_icon"] = None
+        entry["weather_change"] = weather_change
+
+        summary.append(entry)
+    return summary
+
+
 @router.get("/streets")
 async def get_streets():
     """获取金山区所有街道列表"""

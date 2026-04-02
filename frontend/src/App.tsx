@@ -1,11 +1,11 @@
 import { useEffect, useState, useCallback } from 'react'
-import { api, PVSummary, TotalPrediction, WarningRecord, StreetAggregation, PowerPrediction } from './api'
-import Header from './components/Header'
-import StatsCards from './components/StatsCards'
+import { api, PVSummary, TotalPrediction, WarningRecord, StreetAggregation, PowerPrediction, WeatherSummaryItem } from './api'
+import MapView from './components/MapView'
+import TopBar from './components/TopBar'
+import StatsBar from './components/StatsBar'
 import PowerChart from './components/PowerChart'
 import WarningPanel from './components/WarningPanel'
-import StreetTable from './components/StreetTable'
-import MapView from './components/MapView'
+import StreetPanel from './components/StreetPanel'
 
 export default function App() {
   const [summary, setSummary] = useState<PVSummary | null>(null)
@@ -14,13 +14,14 @@ export default function App() {
   const [aggregations, setAggregations] = useState<StreetAggregation[]>([])
   const [selectedStreet, setSelectedStreet] = useState<string | null>(null)
   const [streetPower, setStreetPower] = useState<PowerPrediction[]>([])
+  const [weatherSummary, setWeatherSummary] = useState<WeatherSummaryItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [showChart, setShowChart] = useState(true)
+  const [showWarnings, setShowWarnings] = useState(true)
 
   const loadData = useCallback(async () => {
     try {
       setLoading(true)
-      setError(null)
       const [summaryData, aggData] = await Promise.all([
         api.getSummary(),
         api.getAggregations(),
@@ -28,21 +29,20 @@ export default function App() {
       setSummary(summaryData)
       setAggregations(aggData)
 
-      // These may fail if weather API is not configured yet
       try {
-        const [powerData, warningData] = await Promise.all([
+        const [powerData, warningData, weatherData] = await Promise.all([
           api.getTotalPower(),
           api.evaluateWarnings(),
+          api.getWeatherSummary(),
         ])
         setTotalPower(powerData)
         setWarnings(warningData.warnings)
-      } catch {
-        // Weather API not available, show empty
-        setTotalPower([])
-        setWarnings([])
+        setWeatherSummary(weatherData)
+      } catch (e) {
+        console.error('天气数据加载失败:', e)
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : '数据加载失败')
+      console.error('数据加载失败:', e)
     } finally {
       setLoading(false)
     }
@@ -51,67 +51,76 @@ export default function App() {
   useEffect(() => { loadData() }, [loadData])
 
   const handleStreetClick = async (street: string) => {
-    setSelectedStreet(street)
+    setSelectedStreet(prev => prev === street ? null : street)
     try {
       const data = await api.getStreetPower(street)
       setStreetPower(data.predictions)
+      setShowChart(true)
     } catch {
       setStreetPower([])
     }
   }
 
-  const warningCount = {
-    red: warnings.filter(w => w.level === 'red').length,
-    orange: warnings.filter(w => w.level === 'orange').length,
-    yellow: warnings.filter(w => w.level === 'yellow').length,
-    blue: warnings.filter(w => w.level === 'blue').length,
-  }
-
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
-      <Header onRefresh={loadData} loading={loading} />
+    <div className="relative w-full h-screen overflow-hidden">
+      {/* Full-screen map as background */}
+      <MapView
+        aggregations={aggregations}
+        warnings={warnings}
+        weatherSummary={weatherSummary}
+        onStreetClick={handleStreetClick}
+        selectedStreet={selectedStreet}
+      />
 
-      {error && (
-        <div className="mx-6 mt-4 p-3 rounded-lg bg-red-900/30 border border-red-700 text-red-300 text-sm">
-          {error}
-        </div>
+      {/* Top bar - floating */}
+      <TopBar loading={loading} onRefresh={loadData} />
+
+      {/* Stats bar - bottom left */}
+      <StatsBar summary={summary} warnings={warnings} />
+
+      {/* Power chart - bottom center */}
+      {showChart && (
+        <PowerChart
+          totalPower={totalPower}
+          streetPower={streetPower}
+          selectedStreet={selectedStreet}
+          onClose={() => setShowChart(false)}
+        />
       )}
 
-      <main className="p-6 space-y-6">
-        <StatsCards
-          summary={summary}
-          warningCount={warningCount}
-          totalPowerNow={totalPower.length > 0 ? totalPower[Math.floor(totalPower.length / 2)]?.predicted_power_kw : 0}
+      {/* Warning panel - right side */}
+      {showWarnings && warnings.length > 0 && (
+        <WarningPanel
+          warnings={warnings}
+          onClose={() => setShowWarnings(false)}
+          onStreetClick={handleStreetClick}
         />
+      )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <PowerChart
-              totalPower={totalPower}
-              streetPower={streetPower}
-              selectedStreet={selectedStreet}
-            />
-          </div>
-          <div>
-            <WarningPanel warnings={warnings} />
-          </div>
-        </div>
+      {/* Street detail panel - left side */}
+      {selectedStreet && (
+        <StreetPanel
+          street={selectedStreet}
+          aggregations={aggregations}
+          warnings={warnings}
+          streetPower={streetPower}
+          onClose={() => setSelectedStreet(null)}
+        />
+      )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <MapView
-            aggregations={aggregations}
-            warnings={warnings}
-            onStreetClick={handleStreetClick}
-            selectedStreet={selectedStreet}
-          />
-          <StreetTable
-            aggregations={aggregations}
-            warnings={warnings}
-            onStreetClick={handleStreetClick}
-            selectedStreet={selectedStreet}
-          />
-        </div>
-      </main>
+      {/* Toggle buttons */}
+      <div className="absolute bottom-5 right-5 flex gap-2 z-20">
+        {!showChart && (
+          <button onClick={() => setShowChart(true)} className="glass-panel px-3 py-2 text-xs cursor-pointer" style={{ color: 'var(--accent-cyan)' }}>
+            出力曲线
+          </button>
+        )}
+        {!showWarnings && warnings.length > 0 && (
+          <button onClick={() => setShowWarnings(true)} className="glass-panel px-3 py-2 text-xs cursor-pointer" style={{ color: 'var(--accent-orange)' }}>
+            预警 ({warnings.length})
+          </button>
+        )}
+      </div>
     </div>
   )
 }

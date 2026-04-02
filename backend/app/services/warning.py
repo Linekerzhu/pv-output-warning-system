@@ -29,10 +29,12 @@ class WarningService:
             curr = predictions[i]
             next_ = predictions[i + 1]
 
-            if curr.predicted_power_kw <= 0:
+            # 只比较天气系数变化，排除太阳高度角自然衰减
+            if curr.weather_factor <= 0:
                 continue
 
-            drop_ratio = (curr.predicted_power_kw - next_.predicted_power_kw) / curr.predicted_power_kw
+            weather_drop = (curr.weather_factor - next_.weather_factor) / curr.weather_factor
+            drop_ratio = weather_drop
 
             if drop_ratio < settings.WARNING_LEVEL_BLUE:
                 continue

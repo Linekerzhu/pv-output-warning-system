@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     # 和风天气API
     QWEATHER_API_KEY: str = ""
-    QWEATHER_API_HOST: str = "https://devapi.qweather.com"
+    QWEATHER_API_HOST: str = "https://mh7fc34mwn.re.qweatherapi.com"
     QWEATHER_CREDENTIAL_ID: str = ""
 
     # 金山地区中心坐标
@@ -36,7 +36,10 @@ class Settings(BaseSettings):
     # 数据文件路径
     PV_USERS_FILE: str = "data/pv_users.json"
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    model_config = {
+        "env_file": [".env", "../.env"],
+        "env_file_encoding": "utf-8",
+    }
 
 
 settings = Settings()
