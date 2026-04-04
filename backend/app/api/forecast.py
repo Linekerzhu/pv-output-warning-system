@@ -1,6 +1,6 @@
 from datetime import date, datetime, timedelta, timezone
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException
 
 from app.core.constants import JINSHAN_STREETS, SHANGHAI_TZ, STREET_TO_STATION_ID
 from app.repositories.forecast_repo import ForecastRepo

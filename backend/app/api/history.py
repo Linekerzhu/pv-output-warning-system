@@ -9,7 +9,7 @@ from datetime import date, datetime, timedelta, timezone
 from fastapi import APIRouter, Query
 from loguru import logger
 
-from app.core.constants import JINSHAN_STREETS, SHANGHAI_TZ, STATION_ID_TO_STREET, STREET_TO_STATION_ID
+from app.core.constants import SHANGHAI_TZ, STREET_TO_STATION_ID
 from app.core.database import get_pool
 from app.models.warning_record import PowerPrediction
 from app.services.aggregation import AggregationService
