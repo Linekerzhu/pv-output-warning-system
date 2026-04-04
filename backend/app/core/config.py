@@ -12,18 +12,17 @@ class Settings(BaseSettings):
     LOCATION_LON: float = 121.3420
     LOCATION_NAME: str = "上海金山"
 
-    # 预警阈值（出力下降比例）
-    WARNING_LEVEL_BLUE: float = 0.30
-    WARNING_LEVEL_YELLOW: float = 0.50
-    WARNING_LEVEL_ORANGE: float = 0.70
-    WARNING_LEVEL_RED: float = 0.85
+    # 光伏系统性能比 (Performance Ratio)
+    # 综合效率：逆变器(96%) × 系统损耗(86%) × 温度(~97%) ≈ 0.80
+    PV_PERFORMANCE_RATIO: float = 0.80
+
+    # 预警阈值 — 出力骤变占装机容量的比例
+    # 40%: 只有强对流/极端天气才触发，正常天气不触发
+    WARNING_SWING_THRESHOLD: float = 0.40
 
     # 有效发电时段
     GENERATION_START_HOUR: int = 9
     GENERATION_END_HOUR: int = 16
-
-    # 预警提前量（小时）
-    WARNING_LEAD_HOURS: int = 2
 
     # 轮询间隔（秒）
     POLL_INTERVAL_SECONDS: int = 3600
@@ -35,6 +34,9 @@ class Settings(BaseSettings):
 
     # 数据文件路径
     PV_USERS_FILE: str = "data/pv_users.json"
+
+    # PostgreSQL
+    DATABASE_URL: str = "postgresql://pvuser:pvpass@localhost:5432/pv_warning"
 
     model_config = {
         "env_file": [".env", "../.env"],

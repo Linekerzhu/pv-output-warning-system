@@ -35,7 +35,7 @@ function buildDayCharts(
     ? streetPower.map(p => ({
         date: p.time.split(' ')[0],
         hour: p.time.split(' ')[1]?.slice(0, 5) || p.time,
-        predicted: Math.round(p.predicted_power_kw),
+        predicted: Math.round(p.power_kw),
         clearsky: Math.round(p.clearsky_power_kw),
       }))
     : totalPower.map(p => ({

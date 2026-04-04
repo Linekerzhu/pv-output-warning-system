@@ -36,21 +36,25 @@ export interface PVSummary {
 
 export interface PowerPrediction {
   time: string
-  clearsky_ratio: number
+  ghi: number
+  clearsky_ghi: number
+  weather_ratio: number
+  power_kw: number
   clearsky_power_kw: number
-  weather_factor: number
-  predicted_power_kw: number
   weather_text: string
   weather_icon: number
+  is_estimated: boolean
 }
 
 export interface WarningRecord {
   id: string
-  level: string
-  label: string
+  level: string              // red/orange/yellow/blue
+  label: string              // I级（红色）等
+  type: string               // ramp_down / ramp_up
   street: string
   action: string
-  drop_ratio: number
+  change_rate: number         // 天气系数变化率 (0-1)
+  abs_change_kw: number       // 天气驱动绝对变化量 kW
   from_time: string
   to_time: string
   from_power_kw: number
@@ -108,6 +112,18 @@ export interface WeatherSummaryItem {
   weather_change: boolean
 }
 
+export interface BacktestResult {
+  date: string
+  weather_hourly: HourlyWeather[]
+  predictions: Record<string, PowerPrediction[]>
+  warnings: WarningRecord[]
+  summary: {
+    total_warnings: number
+    by_level: Record<string, number>
+  }
+  data_source: string
+}
+
 export const api = {
   getPVUsers: () => fetchJSON<PVUser[]>('/pv-users/list'),
   getSummary: () => fetchJSON<PVSummary>('/pv-users/summary'),
@@ -125,4 +141,10 @@ export const api = {
     fetchJSON<Record<string, WeatherForecast>>('/weather/forecast'),
   getSolarRadiation: (hours = 24) =>
     fetchJSON<SolarRadiationForecast>(`/weather/solar-radiation?hours=${hours}`),
+  getBacktest: (date: string) =>
+    fetchJSON<BacktestResult>(`/history/backtest/${date}`),
+  fetchHistoryRange: (start: string, end: string) =>
+    fetchJSON<{ fetched: string[]; failed: string[] }>(
+      `/history/fetch-range?start=${start}&end=${end}`, 'POST'
+    ),
 }

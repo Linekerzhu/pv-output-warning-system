@@ -1,78 +1,134 @@
+"""Weather API routes — read from weather_forecast table."""
+
+from datetime import datetime, timedelta, timezone
+
 from fastapi import APIRouter, HTTPException
 
-from app.core.constants import JINSHAN_STREETS
-from app.services.weather import WeatherService
+from app.core.constants import JINSHAN_STREETS, SHANGHAI_TZ, STREET_TO_STATION_ID
+from app.repositories.weather_repo import WeatherRepo
 
 router = APIRouter()
-weather_service = WeatherService()
+weather_repo = WeatherRepo()
+
+
+def _fmt_time(dt: datetime) -> str:
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(SHANGHAI_TZ).strftime("%Y-%m-%d %H:%M")
+
+
+def _row_to_hourly(row) -> dict:
+    return {
+        "time": _fmt_time(row["forecast_time"]),
+        "icon": row["weather_icon"] or 100,
+        "text": row["weather_text"] or "--",
+        "temp": row["temp"] or 0,
+        "humidity": row["humidity"] or 0,
+        "cloud": row["cloud"] or 0,
+        "pop": row["pop"] or 0,
+        "wind_speed": row["wind_speed"] or 0,
+        "precip": row["precip"] or 0,
+    }
 
 
 @router.get("/forecast/{street}")
 async def get_street_forecast(street: str):
-    """获取指定街道未来24小时逐小时天气预报"""
     if street not in JINSHAN_STREETS:
         raise HTTPException(status_code=404, detail=f"未知街道: {street}")
-    data = await weather_service.get_hourly_forecast(street)
-    if not data:
-        raise HTTPException(status_code=503, detail="气象数据获取失败")
-    return data
+
+    station_id = STREET_TO_STATION_ID[street]
+    rows = await weather_repo.get_street_forecast(station_id)
+
+    if not rows:
+        raise HTTPException(status_code=503, detail="暂无气象数据，请稍后再试")
+
+    return {
+        "street": street,
+        "update_time": _fmt_time(rows[0]["forecast_time"]),
+        "hourly": [_row_to_hourly(r) for r in rows],
+    }
 
 
 @router.get("/forecast")
 async def get_all_forecasts():
-    """获取所有街道天气预报"""
-    return await weather_service.get_all_streets_forecast()
+    rows = await weather_repo.get_all_forecasts()
+
+    result: dict = {}
+    for row in rows:
+        street = row["street"]
+        if street not in result:
+            result[street] = {
+                "street": street,
+                "update_time": _fmt_time(row["forecast_time"]),
+                "hourly": [],
+            }
+        result[street]["hourly"].append(_row_to_hourly(row))
+
+    return result
 
 
 @router.get("/summary")
 async def get_weather_summary():
-    """获取所有街道的轻量天气摘要，用于地图展示"""
-    all_forecasts = await weather_service.get_all_streets_forecast()
+    now = datetime.now(tz=SHANGHAI_TZ)
+    rows = await weather_repo.get_weather_summary_rows(now - timedelta(hours=1))
+
+    by_street: dict[str, list] = {}
+    for row in rows:
+        street = row["street"]
+        if street not in by_street:
+            by_street[street] = []
+        if len(by_street[street]) < 3:
+            by_street[street].append(row)
+
     summary = []
-    for street, forecast in all_forecasts.items():
-        hourly = forecast.hourly
-        if not hourly:
+    for street, hours in by_street.items():
+        if not hours:
             continue
-
-        current = hourly[0]
-        next_hour = hourly[1] if len(hourly) > 1 else None
-
-        # 判断未来2小时内天气是否变化（比较前2个小时的天气文字）
-        weather_change = False
-        for i in range(1, min(len(hourly), 3)):
-            if hourly[i].text != current.text:
-                weather_change = True
-                break
-
-        entry = {
+        current = hours[0]
+        next_hour = hours[1] if len(hours) > 1 else None
+        weather_change = any(
+            h["weather_text"] != current["weather_text"] for h in hours[1:]
+        )
+        summary.append({
             "street": street,
-            "current_text": current.text,
-            "current_icon": current.icon,
-        }
-        if next_hour:
-            entry["next_hour_text"] = next_hour.text
-            entry["next_hour_icon"] = next_hour.icon
-        else:
-            entry["next_hour_text"] = None
-            entry["next_hour_icon"] = None
-        entry["weather_change"] = weather_change
+            "current_text": current["weather_text"] or "--",
+            "current_icon": current["weather_icon"] or 100,
+            "next_hour_text": next_hour["weather_text"] if next_hour else None,
+            "next_hour_icon": next_hour["weather_icon"] if next_hour else None,
+            "weather_change": weather_change,
+        })
 
-        summary.append(entry)
     return summary
+
+
+# 金山区天气/辐照度 = 山阳镇（区政府所在地）
+DISTRICT_STATION_ID = STREET_TO_STATION_ID["山阳镇"]
+DISTRICT_COORDS = JINSHAN_STREETS["山阳镇"]
 
 
 @router.get("/solar-radiation")
 async def get_solar_radiation(hours: int = 24):
-    """获取金山区太阳辐射预报（GHI/DNI/DHI）"""
-    data = await weather_service.get_solar_radiation(lat=30.82, lon=121.20, hours=hours)
-    if not data:
-        raise HTTPException(status_code=503, detail="太阳辐射数据获取失败")
-    return data
+    now = datetime.now(tz=SHANGHAI_TZ)
+    rows = await weather_repo.get_solar_radiation(
+        DISTRICT_STATION_ID, now - timedelta(hours=1), hours
+    )
+
+    forecasts = [
+        {
+            "time": _fmt_time(r["forecast_time"]),
+            "ghi": r["ghi"] or 0,
+            "dni": r["dni"] or 0,
+            "dhi": r["dhi"] or 0,
+            "elevation": 0,
+        }
+        for r in rows
+    ]
+
+    return {"lat": DISTRICT_COORDS["lat"], "lon": DISTRICT_COORDS["lon"], "forecasts": forecasts}
 
 
 @router.get("/streets")
 async def get_streets():
-    """获取金山区所有街道列表"""
     return {
         name: {"lat": info["lat"], "lon": info["lon"]}
         for name, info in JINSHAN_STREETS.items()

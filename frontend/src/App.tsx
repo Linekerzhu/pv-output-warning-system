@@ -9,6 +9,7 @@ import WarningPanel from './components/WarningPanel'
 import StreetPanel from './components/StreetPanel'
 import MobileTabBar from './components/MobileTabBar'
 import SideMenu, { type PanelType } from './components/SideMenu'
+import HistoryPanel from './components/HistoryPanel'
 
 type MobileTab = 'map' | 'chart' | 'alerts'
 
@@ -178,9 +179,14 @@ export default function App() {
               )}
               {activePanel === 'warnings' && (
                 <WarningPanel
+                  warnings={warnings}
                   selectedStreet={selectedStreet}
-                  summary={summary}
-                  aggregations={aggregations}
+                  onClose={() => setActivePanel(null)}
+                  onStreetClick={handleStreetClick}
+                />
+              )}
+              {activePanel === 'history' && (
+                <HistoryPanel
                   onClose={() => setActivePanel(null)}
                   onStreetClick={handleStreetClick}
                 />
@@ -248,9 +254,8 @@ export default function App() {
               <div className="bottom-sheet">
                 <div className="sheet-handle" />
                 <WarningPanel
+                  warnings={warnings}
                   selectedStreet={selectedStreet}
-                  summary={summary}
-                  aggregations={aggregations}
                   onClose={() => setMobileTab('map')}
                   onStreetClick={handleStreetClick}
                   isMobile

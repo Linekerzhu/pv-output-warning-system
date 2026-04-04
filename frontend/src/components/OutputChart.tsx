@@ -1,6 +1,6 @@
 import { memo, useMemo, useState } from 'react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea } from 'recharts'
-import type { Warning } from '../lib/warningEngine'
+import type { WarningRecord } from '../api'
 
 interface OutputEntry {
   time: string
@@ -11,7 +11,7 @@ interface OutputEntry {
 interface Props {
   data: OutputEntry[]
   capacityKw: number
-  warnings: Warning[]
+  warnings: WarningRecord[]
 }
 
 function CustomDot(props: any) {
@@ -21,12 +21,10 @@ function CustomDot(props: any) {
   const color = isRed ? '#e06456' : '#dba14a'
   return (
     <g>
-      {/* Warning marker */}
       <circle cx={cx} cy={cy} r={isRed ? 4 : 3} fill={color} opacity={0.9}>
         {isRed && <animate attributeName="opacity" values="0.9;0.3;0.9" dur="1.5s" repeatCount="indefinite" />}
         {isRed && <animate attributeName="r" values="4;6;4" dur="1.5s" repeatCount="indefinite" />}
       </circle>
-      {/* Exclamation mark for red */}
       {isRed && (
         <text x={cx} y={cy - 10} textAnchor="middle" fontSize="10" fontWeight="700" fill="#e06456">
           ⚠
@@ -40,7 +38,7 @@ function CustomTooltipContent({ active, payload, label }: any) {
   if (!active || !payload?.[0]) return null
   const data = payload[0].payload
   const output = data.output
-  const warning = data._warning as Warning | undefined
+  const warning = data._warning as WarningRecord | undefined
   const fmtPower = (kw: number) => kw >= 1000 ? `${(kw / 1000).toFixed(1)} MW` : `${kw} kW`
 
   return (
@@ -59,13 +57,13 @@ function CustomTooltipContent({ active, payload, label }: any) {
           fontSize: 9,
         }}>
           <div style={{ fontWeight: 600, marginBottom: 2 }}>
-            {warning.label} · {warning.type === 'ramp_down' ? '↓骤降' : '↑骤增'} {warning.rampRatePercent}%/h
+            {warning.label} · {warning.type === 'ramp_down' ? '↓骤降' : '↑骤增'} {Math.round(warning.change_rate * 100)}%
           </div>
           <div style={{ color: '#b8b3a8' }}>
-            {fmtPower(warning.fromPowerKw)} → {fmtPower(warning.toPowerKw)}
+            {fmtPower(warning.from_power_kw)} → {fmtPower(warning.to_power_kw)}
           </div>
           <div style={{ color: '#78746b' }}>
-            GHI {warning.ghiChange > 0 ? '+' : ''}{warning.ghiChange} W/m²
+            {warning.weather_from} → {warning.weather_to} · Δ{Math.round(warning.abs_change_kw)}kW
           </div>
         </div>
       )}
@@ -74,12 +72,13 @@ function CustomTooltipContent({ active, payload, label }: any) {
 }
 
 export default memo(function OutputChart({ data, capacityKw, warnings }: Props) {
-  // Build warning lookup: fromTime hour → warning
   const warningMap = useMemo(() => {
-    const m = new Map<string, Warning>()
+    const m = new Map<string, WarningRecord>()
     warnings.forEach(w => {
-      const key = w.fromTime.split(' ')[1]?.slice(0, 5) || ''
-      m.set(key, w)
+      const key = w.from_time.split(' ')[1]?.slice(0, 5) || ''
+      if (!m.has(key) || (m.get(key)!.level !== 'red' && w.level === 'red')) {
+        m.set(key, w)
+      }
     })
     return m
   }, [warnings])
@@ -105,11 +104,10 @@ export default memo(function OutputChart({ data, capacityKw, warnings }: Props) 
     )
   }, [data, warningMap])
 
-  // Find warning time ranges for ReferenceArea highlighting
   const warningAreas = useMemo(() => {
     return warnings.map(w => ({
-      from: w.fromTime.split(' ')[1]?.slice(0, 5) || '',
-      to: w.toTime.split(' ')[1]?.slice(0, 5) || '',
+      from: w.from_time.split(' ')[1]?.slice(0, 5) || '',
+      to: w.to_time.split(' ')[1]?.slice(0, 5) || '',
       level: w.level,
     }))
   }, [warnings])
@@ -175,7 +173,6 @@ export default memo(function OutputChart({ data, capacityKw, warnings }: Props) 
             fontFamily="var(--font-data)" domain={[0, 'auto']}
             tickFormatter={v => v >= 1000 ? `${(v / 1000).toFixed(0)}M` : `${v}`} />
 
-          {/* Warning zone highlights */}
           {warningAreas.map((area, i) => (
             <ReferenceArea key={i} x1={area.from} x2={area.to}
               fill={area.level === 'red' ? 'rgba(224,100,86,0.12)' : 'rgba(219,161,74,0.08)'}

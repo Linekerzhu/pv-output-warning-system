@@ -51,6 +51,35 @@ class SolarService:
 
         return result
 
+    def get_clearsky_ghi(
+        self, target_date: date, lat: float, lon: float
+    ) -> dict[int, float]:
+        """
+        计算指定日期和位置的晴空GHI曲线（绝对值 W/m²）。
+
+        Returns:
+            dict[int, float]: {hour: ghi_wm2}，仅包含有效发电时段
+        """
+        site = pvloc.Location(lat, lon, tz="Asia/Shanghai", altitude=4)
+
+        times = pd.date_range(
+            start=f"{target_date} 00:00",
+            periods=24,
+            freq="h",
+            tz="Asia/Shanghai",
+        )
+
+        clearsky = site.get_clearsky(times, model="ineichen")
+        ghi = clearsky["ghi"]
+
+        result = {}
+        for ts, val in ghi.items():
+            hour = ts.hour
+            if self.start_hour <= hour <= self.end_hour and val > 0:
+                result[hour] = round(float(val), 1)
+
+        return result
+
     def get_clearsky_curve_default(self, target_date: date) -> dict[int, float]:
         """使用金山中心坐标计算晴空曲线"""
         return self.get_clearsky_curve(

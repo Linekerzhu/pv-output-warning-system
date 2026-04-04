@@ -9,3 +9,4 @@ pvlib==0.11.1
 apscheduler==3.10.4
 python-dotenv==1.0.1
 loguru==0.7.2
+asyncpg==0.30.0

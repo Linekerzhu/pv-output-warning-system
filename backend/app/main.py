@@ -1,47 +1,93 @@
 from contextlib import asynccontextmanager
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from loguru import logger
 
-from app.api import weather, forecast, warning, pv_users
+from app.api import weather, forecast, warning, pv_users, history
 from app.core.config import settings
-from app.services.warning import WarningService
+from app.core.database import init_db, close_db
+from app.services.data_collector import DataCollector
 
-warning_service = WarningService()
+data_collector = DataCollector()
 scheduler = AsyncIOScheduler()
 
 
-async def scheduled_evaluation():
-    """定时预警评估任务"""
-    logger.info("执行定时预警评估...")
-    warnings = await warning_service.evaluate_all()
-    if warnings:
-        logger.warning(f"定时评估发现 {len(warnings)} 条预警")
+async def hourly_job():
+    """Hourly: collect weather + GHI, compute power, evaluate warnings."""
+    try:
+        await data_collector.collect_and_evaluate()
+    except Exception as e:
+        logger.error(f"Hourly job failed: {e}")
+
+
+async def daily_job():
+    """Daily at 01:00: fetch yesterday's actual weather observations."""
+    try:
+        await data_collector.collect_observations()
+    except Exception as e:
+        logger.error(f"Daily observation job failed: {e}")
+
+
+async def cleanup_job():
+    """Daily at 02:00: clean up old history and warning data."""
+    try:
+        await data_collector.cleanup_old_data()
+    except Exception as e:
+        logger.error(f"Cleanup job failed: {e}")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 启动定时任务
+    # Initialize database connection pool
+    await init_db()
+    logger.info("Database initialized")
+
+    # Schedule hourly data collection
     scheduler.add_job(
-        scheduled_evaluation,
+        hourly_job,
         "interval",
         seconds=settings.POLL_INTERVAL_SECONDS,
-        id="warning_evaluation",
+        id="hourly_collect",
+        next_run_time=None,  # Don't run immediately; trigger manually below
     )
+
+    # Schedule daily observation collection at 01:00 Shanghai time
+    scheduler.add_job(
+        daily_job,
+        CronTrigger(hour=1, minute=0, timezone="Asia/Shanghai"),
+        id="daily_observations",
+    )
+
+    # Schedule daily cleanup at 02:00 Shanghai time
+    scheduler.add_job(
+        cleanup_job,
+        CronTrigger(hour=2, minute=0, timezone="Asia/Shanghai"),
+        id="daily_cleanup",
+    )
+
     scheduler.start()
-    logger.info(f"定时预警评估已启动，间隔 {settings.POLL_INTERVAL_SECONDS} 秒")
+    logger.info(f"Scheduler started: hourly every {settings.POLL_INTERVAL_SECONDS}s, daily at 01:00/02:00")
+
+    # Run initial data collection on startup
+    try:
+        await data_collector.collect_and_evaluate()
+    except Exception as e:
+        logger.error(f"Initial data collection failed: {e}")
+
     yield
+
     scheduler.shutdown()
-    logger.info("定时任务已停止")
+    await close_db()
+    logger.info("Shutdown complete")
 
 
 app = FastAPI(
     title="光伏出力预警系统",
     description="上海金山地区光伏出力骤降预警API",
-    version="0.1.0",
+    version="0.2.0",
     lifespan=lifespan,
 )
 
@@ -57,13 +103,14 @@ app.include_router(weather.router, prefix="/api/weather", tags=["气象数据"])
 app.include_router(forecast.router, prefix="/api/forecast", tags=["出力预测"])
 app.include_router(warning.router, prefix="/api/warning", tags=["预警管理"])
 app.include_router(pv_users.router, prefix="/api/pv-users", tags=["光伏用户"])
+app.include_router(history.router, prefix="/api/history", tags=["历史回测"])
 
 
 @app.get("/")
 async def root():
     return {
         "name": "光伏出力预警系统",
-        "version": "0.1.0",
+        "version": "0.2.0",
         "location": settings.LOCATION_NAME,
     }
 

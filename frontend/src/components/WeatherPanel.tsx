@@ -1,9 +1,7 @@
 import { memo, useEffect, useState, useMemo, useRef, lazy, Suspense } from 'react'
 import { api, HourlyWeather, SolarRadiation, PVSummary, StreetAggregation } from '../api'
-import { computeWarnings } from '../lib/warningEngine'
 
 const RadiationChart = lazy(() => import('./RadiationChart'))
-const OutputChart = lazy(() => import('./OutputChart'))
 
 interface Props {
   selectedStreet: string | null
@@ -14,9 +12,6 @@ interface Props {
 
 const PV_START_DEFAULT = 6
 const PV_END_DEFAULT = 19
-
-// 2024 单晶硅面积比功率 210 W/m² (效率 ~21%)
-const AREA_SPECIFIC_CAPACITY = 0.21 // kW/m²
 
 function weatherEmoji(code: number): string {
   if (code === 100 || code === 150) return '\u2600\uFE0F'
@@ -85,18 +80,6 @@ export default memo(function WeatherPanel({ selectedStreet, summary, aggregation
     return summary?.total_capacity_kw || 0
   }, [currentSource, aggregations, summary])
 
-  const panelAreaM2 = capacityKw / AREA_SPECIFIC_CAPACITY
-
-  // Compute output prediction: area × GHI / 1000
-  const outputData = useMemo(() => {
-    if (radiation.length === 0 || capacityKw <= 0) return []
-    return radiation.map(r => ({
-      time: r.time,
-      outputKw: panelAreaM2 * r.ghi / 1000,
-      ghi: r.ghi,
-    }))
-  }, [radiation, panelAreaM2])
-
   const pvHoursSet = useMemo(() => {
     const m = new Map<string, Set<number>>()
     radiation.forEach(r => {
@@ -146,19 +129,6 @@ export default memo(function WeatherPanel({ selectedStreet, summary, aggregation
     return m
   }, [radiation])
 
-  // Compute warnings from radiation data
-  const outputWarnings = useMemo(() =>
-    computeWarnings(radiation, capacityKw, panelAreaM2),
-    [radiation, capacityKw, panelAreaM2]
-  )
-
-  // Output prediction map for table display
-  const outputMap = useMemo(() => {
-    const m = new Map<string, number>()
-    outputData.forEach(o => m.set(o.time.slice(0, 16), o.outputKw))
-    return m
-  }, [outputData])
-
   return (
     <section aria-label="天气预报" className="h-full flex flex-col">
       {/* Header */}
@@ -201,7 +171,6 @@ export default memo(function WeatherPanel({ selectedStreet, summary, aggregation
         </div>
         <div style={{ fontFamily: 'var(--font-data)', fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>
           装机 {capacityKw >= 1000 ? `${(capacityKw / 1000).toFixed(1)} MW` : `${capacityKw.toFixed(0)} kW`}
-          <span style={{ marginLeft: 8 }}>发电面积 {panelAreaM2 >= 10000 ? `${(panelAreaM2 / 10000).toFixed(2)} 万m²` : `${panelAreaM2.toFixed(0)} m²`}</span>
         </div>
       </div>
 
@@ -251,15 +220,6 @@ export default memo(function WeatherPanel({ selectedStreet, summary, aggregation
               </div>
             )}
 
-            {/* Output prediction chart */}
-            {outputData.length > 0 && (
-              <div className="pb-1" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                <Suspense fallback={null}>
-                  <OutputChart data={outputData} capacityKw={capacityKw} warnings={outputWarnings} />
-                </Suspense>
-              </div>
-            )}
-
             {/* Legend */}
             <div className="px-4 py-1.5 flex items-center justify-between" style={{ fontFamily: 'var(--font-data)', fontSize: 8, color: 'var(--text-muted)' }}>
               <div className="flex items-center gap-2">
@@ -289,7 +249,6 @@ export default memo(function WeatherPanel({ selectedStreet, summary, aggregation
                   <colgroup>
                     <col style={{ width: 42 }} />
                     <col style={{ width: 52 }} />
-                    <col />
                     <col style={{ width: 38 }} />
                     <col style={{ width: 30 }} />
                     <col style={{ width: 28 }} />
@@ -300,7 +259,6 @@ export default memo(function WeatherPanel({ selectedStreet, summary, aggregation
                     <tr style={{ fontSize: 8, color: 'var(--text-muted)' }}>
                       <th style={{ fontWeight: 500, textAlign: 'left', padding: '4px 0 4px 8px' }}>时间</th>
                       <th style={{ fontWeight: 500, textAlign: 'left', padding: '4px 0' }}>天气</th>
-                      <th style={{ fontWeight: 500, textAlign: 'right', padding: '4px 0' }}>出力kW</th>
                       <th style={{ fontWeight: 500, textAlign: 'right', padding: '4px 0' }}>辐照</th>
                       <th style={{ fontWeight: 500, textAlign: 'right', padding: '4px 0' }}>温度</th>
                       <th style={{ fontWeight: 500, textAlign: 'right', padding: '4px 0' }}>云量</th>
@@ -314,7 +272,6 @@ export default memo(function WeatherPanel({ selectedStreet, summary, aggregation
                       const dayRadHours = pvHoursSet.get(day.date)
                       const inPV = dayRadHours ? dayRadHours.has(hour) : (hour >= day.pvStart && hour < day.pvEnd)
                       const rad = radiationMap.get(h.time)
-                      const output = outputMap.get(h.time)
 
                       return (
                         <tr key={h.time} style={{ background: inPV ? 'rgba(219,161,74,0.05)' : 'transparent' }}>
@@ -324,9 +281,6 @@ export default memo(function WeatherPanel({ selectedStreet, summary, aggregation
                           <td style={{ padding: '4px 0', whiteSpace: 'nowrap', overflow: 'hidden' }}>
                             <span style={{ fontSize: 11 }}>{weatherEmoji(h.icon)}</span>
                             <span style={{ fontSize: 9, color: 'var(--text-primary)', marginLeft: 1 }}>{h.text}</span>
-                          </td>
-                          <td style={{ padding: '4px 0', textAlign: 'right', color: output && output > 0 ? 'var(--solar-green)' : 'var(--text-muted)', fontWeight: output && output > 100 ? 600 : 400 }}>
-                            {output && output > 0 ? (output >= 1000 ? `${(output / 1000).toFixed(1)}M` : Math.round(output)) : '--'}
                           </td>
                           <td style={{ padding: '4px 0', textAlign: 'right', color: rad && rad.ghi > 0 ? 'var(--solar-gold)' : 'var(--text-muted)' }}>
                             {rad && rad.ghi > 0 ? Math.round(rad.ghi) : '--'}

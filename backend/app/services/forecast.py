@@ -1,114 +1,180 @@
-"""光伏出力预测服务：理论曲线 × 天气系数"""
+"""光伏出力预测服务 — 基于GHI太阳辐射数据
 
-from datetime import date, datetime, timedelta
+核心公式: power_kw = capacity_kw × GHI / 1000
+  - GHI来自和风太阳辐射预报API（实时路径）
+  - 或来自pvlib晴空模型×天气衰减估算（历史回测路径）
+
+weather_ratio = forecast_GHI / clearsky_GHI
+  - 接近1.0: 晴空，光伏满发
+  - 0.3-0.5: 多云/阴天
+  - <0.15: 降雨/浓雾
+  - 日出日落时ratio保持稳定（两者同步变化），不会误触预警
+"""
+
+from datetime import date, datetime, timedelta, timezone
 
 from loguru import logger
 
-from app.core.config import settings
-from app.core.constants import JINSHAN_STREETS, get_weather_output_factor
+from app.core.constants import JINSHAN_STREETS
 from app.models.warning_record import PowerPrediction
+from app.models.weather_data import HourlyWeather
 from app.services.aggregation import AggregationService
 from app.services.solar import SolarService
 from app.services.weather import WeatherService
 
 
 class ForecastService:
-    """光伏出力预测"""
+    """基于GHI的光伏出力预测"""
 
     def __init__(self):
         self.weather_service = WeatherService()
         self.solar_service = SolarService()
         self.aggregation_service = AggregationService()
 
-    def _build_weather_map(self, hourly_items: list) -> dict[str, tuple[float, str, int]]:
-        """构建 'YYYY-MM-DD HH' -> (factor, text, icon) 映射"""
-        result = {}
-        for hw in hourly_items:
-            try:
-                parts = hw.time.split(" ")
-                date_str = parts[0]
-                hour = int(parts[1].split(":")[0])
-                key = f"{date_str} {hour:02d}"
-                factor = get_weather_output_factor(hw.icon)
-                result[key] = (factor, hw.text, hw.icon)
-            except (IndexError, ValueError):
-                continue
-        return result
+    # ── 唯一的预测计算入口 ─────────────────────────────
 
-    async def predict_street_power(
-        self, street: str, target_date: date | None = None
+    def predict_from_weather(
+        self, street: str, hourly: list[HourlyWeather],
+        ghi_values: dict[int, float], target_date: date,
+        is_estimated: bool = False,
     ) -> list[PowerPrediction]:
-        """预测指定街道的逐小时光伏出力，覆盖今明两天完整发电时段"""
+        """基于给定天气和GHI数据预测出力 — 实时和历史的唯一计算入口
+
+        Args:
+            street: 街道名
+            hourly: 天气数据（仅用于 text/icon 展示）
+            ghi_values: {hour: ghi_value} 映射
+            target_date: 目标日期
+            is_estimated: True=历史估算GHI, False=来自辐射预报API
+        """
         agg = self.aggregation_service.get_street_aggregation(street)
         if not agg or agg.total_capacity_kw == 0:
             return []
 
-        # 获取天气预报
-        forecast = await self.weather_service.get_hourly_forecast(street)
+        capacity = agg.total_capacity_kw
+        clearsky_curve = self.solar_service.get_clearsky_ghi(
+            target_date, agg.center_lat, agg.center_lon
+        )
+        date_str = str(target_date)
 
-        # 上海时间"今天"和"明天"
-        now_shanghai = datetime.utcnow() + timedelta(hours=8)
+        # 天气文字映射（仅展示用）
+        weather_map: dict[int, tuple[str, int]] = {}
+        for hw in hourly:
+            try:
+                hour = int(hw.time.split(" ")[1].split(":")[0])
+                weather_map[hour] = (hw.text, hw.icon)
+            except (IndexError, ValueError):
+                continue
+
+        predictions = []
+        for hour, clearsky_ghi in sorted(clearsky_curve.items()):
+            ghi = ghi_values.get(hour)
+            if ghi is None or clearsky_ghi <= 0:
+                continue
+
+            weather_ratio = min(ghi / clearsky_ghi, 1.5)
+            from app.core.config import settings
+            pr = settings.PV_PERFORMANCE_RATIO
+            power_kw = capacity * ghi / 1000 * pr
+            clearsky_power_kw = capacity * clearsky_ghi / 1000 * pr
+            weather_text, weather_icon = weather_map.get(hour, ("--", 999))
+
+            predictions.append(PowerPrediction(
+                time=f"{date_str} {hour:02d}:00",
+                ghi=round(ghi, 1),
+                clearsky_ghi=round(clearsky_ghi, 1),
+                weather_ratio=round(weather_ratio, 4),
+                power_kw=round(power_kw, 2),
+                clearsky_power_kw=round(clearsky_power_kw, 2),
+                weather_text=weather_text,
+                weather_icon=weather_icon,
+                is_estimated=is_estimated,
+            ))
+
+        return predictions
+
+    # ── 实时预测（获取数据 → 调用 predict_from_weather）────
+
+    async def _fetch_district_ghi(self, hours: int = 48) -> dict[str, float]:
+        """获取全区GHI辐射预报（只调一次，所有街道共用）
+
+        Returns:
+            {"YYYY-MM-DD HH": ghi_wm2} 映射，失败返回空dict
+        """
+        from app.core.config import settings
+        radiation = await self.weather_service.get_solar_radiation(
+            lat=settings.LOCATION_LAT, lon=settings.LOCATION_LON, hours=hours
+        )
+        ghi_map: dict[str, float] = {}
+        if radiation and radiation.forecasts:
+            for r in radiation.forecasts:
+                try:
+                    parts = r.time.split(" ")
+                    hour = int(parts[1].split(":")[0])
+                    key = f"{parts[0]} {hour:02d}"
+                    ghi_map[key] = r.ghi
+                except (IndexError, ValueError):
+                    continue
+        if not ghi_map:
+            logger.error("太阳辐射API无数据或请求失败")
+        return ghi_map
+
+    async def predict_street_power(
+        self, street: str, target_date: date | None = None,
+        ghi_map: dict[str, float] | None = None,
+    ) -> list[PowerPrediction]:
+        """预测指定街道出力
+
+        Args:
+            ghi_map: 预获取的GHI数据，如果为None则自行获取
+        """
+        agg = self.aggregation_service.get_street_aggregation(street)
+        if not agg or agg.total_capacity_kw == 0:
+            return []
+
+        now_shanghai = datetime.now(timezone(timedelta(hours=8)))
         today = target_date or now_shanghai.date()
         tomorrow = today + timedelta(days=1)
 
-        # 构建天气映射
-        weather_map: dict[str, tuple[float, str, int]] = {}
-        if forecast and forecast.hourly:
-            weather_map = self._build_weather_map(forecast.hourly)
+        # GHI：使用传入的或自行获取（单街道调用场景）
+        if ghi_map is None:
+            ghi_map = await self._fetch_district_ghi(hours=48)
 
-        # 获取实时天气（用于填充今天已过去的时段）
-        realtime = await self.weather_service.get_realtime_weather(street)
-        if realtime:
-            current_weather = (get_weather_output_factor(realtime.icon), realtime.text, realtime.icon)
-        elif forecast and forecast.hourly:
-            first = forecast.hourly[0]
-            current_weather = (get_weather_output_factor(first.icon), first.text, first.icon)
-        else:
-            current_weather = (0.7, "多云", 103)
+        # 天气预报（仅用于展示 text/icon，不参与出力计算）
+        weather_forecast = await self.weather_service.get_hourly_forecast(street)
+        hourly = weather_forecast.hourly if weather_forecast else []
 
+        # 对今天和明天分别调用唯一计算入口
         predictions = []
-
         for d in [today, tomorrow]:
-            clearsky = self.solar_service.get_clearsky_curve(
-                d, agg.center_lat, agg.center_lon
-            )
+            # 提取当天的 {hour: ghi}
             date_str = str(d)
+            day_ghi: dict[int, float] = {}
+            for key, ghi in ghi_map.items():
+                if key.startswith(date_str):
+                    try:
+                        hour = int(key.split(" ")[1])
+                        day_ghi[hour] = ghi
+                    except (IndexError, ValueError):
+                        continue
 
-            for hour, ratio in sorted(clearsky.items()):
-                key = f"{date_str} {hour:02d}"
-                if key in weather_map:
-                    factor, text, icon = weather_map[key]
-                else:
-                    # 无预报数据：今天已过去的时段用当前天气填充，未来无数据则跳过
-                    is_past = (d == today and hour <= now_shanghai.hour)
-                    if is_past:
-                        factor, text, icon = current_weather
-                        text = f"{text}*"  # 标记为推算值
-                    else:
-                        continue  # 未来没预报就不猜
-
-                clearsky_kw = agg.total_capacity_kw * ratio
-                predicted = clearsky_kw * factor
-
-                predictions.append(PowerPrediction(
-                    time=f"{date_str} {hour:02d}:00",
-                    clearsky_ratio=round(ratio, 4),
-                    clearsky_power_kw=round(clearsky_kw, 2),
-                    weather_factor=factor,
-                    predicted_power_kw=round(predicted, 2),
-                    weather_text=text,
-                    weather_icon=icon,
-                ))
+            predictions.extend(
+                self.predict_from_weather(street, hourly, day_ghi, d)
+            )
 
         return predictions
 
     async def predict_all_streets(
         self, target_date: date | None = None
     ) -> dict[str, list[PowerPrediction]]:
-        """预测所有街道的出力"""
+        """预测所有街道 — GHI只获取一次，分发给所有街道"""
+        ghi_map = await self._fetch_district_ghi(hours=48)
+
         results = {}
         for street in JINSHAN_STREETS:
-            predictions = await self.predict_street_power(street, target_date)
+            predictions = await self.predict_street_power(
+                street, target_date, ghi_map=ghi_map
+            )
             if predictions:
                 results[street] = predictions
         return results
@@ -116,20 +182,15 @@ class ForecastService:
     async def get_district_total_prediction(
         self, target_date: date | None = None
     ) -> list[dict]:
-        """获取全区汇总预测（所有街道合计）"""
         all_predictions = await self.predict_all_streets(target_date)
 
         hour_totals: dict[str, float] = {}
         hour_clearsky: dict[str, float] = {}
 
         for street, predictions in all_predictions.items():
-            agg = self.aggregation_service.get_street_aggregation(street)
-            street_capacity = agg.total_capacity_kw if agg else 0
             for p in predictions:
-                hour_totals[p.time] = hour_totals.get(p.time, 0) + p.predicted_power_kw
-                hour_clearsky[p.time] = hour_clearsky.get(p.time, 0) + (
-                    street_capacity * p.clearsky_ratio
-                )
+                hour_totals[p.time] = hour_totals.get(p.time, 0) + p.power_kw
+                hour_clearsky[p.time] = hour_clearsky.get(p.time, 0) + p.clearsky_power_kw
 
         total_capacity = self.aggregation_service.get_total_capacity_kw()
 

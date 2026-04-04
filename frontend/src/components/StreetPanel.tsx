@@ -69,10 +69,10 @@ export default memo(function StreetPanel({ street, aggregations, warnings, stree
           <div className="tag-label mb-2" style={{ fontSize: 8 }}>逐时出力</div>
           <div className="space-y-1 max-h-52 overflow-y-auto pr-1">
             {streetPower.map((p, i) => {
-              const ratio = p.weather_factor * p.clearsky_ratio
-              const barWidth = Math.round(ratio * 100)
-              const barColor = p.weather_factor >= 0.7 ? 'var(--solar-green)'
-                : p.weather_factor >= 0.4 ? 'var(--solar-amber)' : 'var(--solar-coral)'
+              const ratio = p.power_kw / p.clearsky_power_kw
+              const barWidth = Math.round(Math.min(ratio, 1) * 100)
+              const barColor = p.weather_ratio >= 0.7 ? 'var(--solar-green)'
+                : p.weather_ratio >= 0.4 ? 'var(--solar-amber)' : 'var(--solar-coral)'
 
               return (
                 <div key={p.time} className="flex items-center gap-2 animate-in" style={{ animationDelay: `${i * 0.02}s` }}>
@@ -87,7 +87,7 @@ export default memo(function StreetPanel({ street, aggregations, warnings, stree
                     }} />
                   </div>
                   <span className="data-value w-12 text-right shrink-0" style={{ fontSize: 10, color: 'var(--text-primary)' }}>
-                    {p.predicted_power_kw.toFixed(0)}
+                    {p.power_kw.toFixed(0)}
                   </span>
                   <span className="w-6 text-right shrink-0" style={{ fontSize: 9, color: 'var(--text-muted)' }}>
                     {p.weather_text.slice(0, 2)}
@@ -111,7 +111,7 @@ export default memo(function StreetPanel({ street, aggregations, warnings, stree
               paddingBottom: 2,
             }}>
               <span style={{ color: 'var(--text-bright)' }}>{w.from_time.split(' ')[1]} → {w.to_time.split(' ')[1]}</span>
-              <span className="ml-1.5" style={{ color: LEVEL_COLORS[w.level] || 'var(--solar-teal)', fontWeight: 600 }}>▾{(w.drop_ratio * 100).toFixed(0)}%</span>
+              <span className="ml-1.5" style={{ color: LEVEL_COLORS[w.level] || 'var(--solar-teal)', fontWeight: 600 }}>{w.type === 'ramp_down' ? '▾' : '▴'}{(w.change_rate * 100).toFixed(0)}%</span>
             </div>
           ))}
         </div>

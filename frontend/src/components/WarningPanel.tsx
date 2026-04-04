@@ -1,17 +1,13 @@
-import { memo, useMemo, useState, useEffect, useRef } from 'react'
-import { api, SolarRadiation, PVSummary, StreetAggregation } from '../api'
-import { computeWarnings, type Warning } from '../lib/warningEngine'
+import { memo, useMemo, useState } from 'react'
+import type { WarningRecord } from '../api'
 
 interface Props {
+  warnings: WarningRecord[]
   selectedStreet: string | null
-  summary: PVSummary | null
-  aggregations: StreetAggregation[]
   onClose: () => void
   onStreetClick: (street: string) => void
   isMobile?: boolean
 }
-
-const AREA_SPECIFIC_CAPACITY = 0.21 // kW/m²
 
 const LEVEL_STYLE: Record<string, { color: string; bg: string }> = {
   red:    { color: 'var(--solar-coral)', bg: 'rgba(224,100,86,0.06)' },
@@ -22,70 +18,39 @@ const LEVEL_STYLE: Record<string, { color: string; bg: string }> = {
 
 const TYPE_LABEL = { ramp_down: '↓ 骤降', ramp_up: '↑ 骤增' } as const
 
-export default memo(function WarningPanel({ selectedStreet, summary, aggregations, onClose, onStreetClick, isMobile }: Props) {
-  const [radiation, setRadiation] = useState<SolarRadiation[]>([])
-  const [loading, setLoading] = useState(true)
-  const [currentSource, setCurrentSource] = useState<string | null>(null)
+export default memo(function WarningPanel({ warnings, selectedStreet, onClose, onStreetClick, isMobile }: Props) {
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
   const [levelFilter, setLevelFilter] = useState<string | null>(null)
   const [typeFilter, setTypeFilter] = useState<string | null>(null)
   const [showDismissed, setShowDismissed] = useState(false)
 
-  const prevStreetRef = useRef(selectedStreet)
+  // Filter by selected street if any
+  const streetFiltered = useMemo(() => {
+    if (!selectedStreet) return warnings
+    return warnings.filter(w => w.street === selectedStreet)
+  }, [warnings, selectedStreet])
 
-  const doFetch = (street: string | null) => {
-    setLoading(true)
-    api.getSolarRadiation(48)
-      .then(data => { setRadiation(data.forecasts); setCurrentSource(street) })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }
-
-  useEffect(() => { doFetch(null) }, [])
-
-  useEffect(() => {
-    if (selectedStreet !== prevStreetRef.current) {
-      prevStreetRef.current = selectedStreet
-      setCurrentSource(selectedStreet)
-    }
-  }, [selectedStreet])
-
-  const displayName = currentSource || '金山区'
-
-  const capacityKw = useMemo(() => {
-    if (currentSource) {
-      const agg = aggregations.find(a => a.street === currentSource)
-      return agg?.total_capacity_kw || 0
-    }
-    return summary?.total_capacity_kw || 0
-  }, [currentSource, aggregations, summary])
-
-  const areaM2 = capacityKw / AREA_SPECIFIC_CAPACITY
-
-  const warnings = useMemo(() =>
-    computeWarnings(radiation, capacityKw, areaM2),
-    [radiation, capacityKw, areaM2]
-  )
+  const displayName = selectedStreet || '金山区'
 
   // Filter
   const filtered = useMemo(() => {
-    let list = warnings
+    let list = streetFiltered
     if (!showDismissed) list = list.filter(w => !dismissed.has(w.id))
     if (levelFilter) list = list.filter(w => w.level === levelFilter)
     if (typeFilter) list = list.filter(w => w.type === typeFilter)
     return list
-  }, [warnings, dismissed, showDismissed, levelFilter, typeFilter])
+  }, [streetFiltered, dismissed, showDismissed, levelFilter, typeFilter])
 
   const counts = useMemo(() => {
     const c = { red: 0, orange: 0, yellow: 0, blue: 0, ramp_down: 0, ramp_up: 0 }
-    warnings.filter(w => !dismissed.has(w.id)).forEach(w => {
-      c[w.level]++
-      c[w.type]++
+    streetFiltered.filter(w => !dismissed.has(w.id)).forEach(w => {
+      c[w.level as keyof typeof c]++
+      c[w.type as keyof typeof c]++
     })
     return c
-  }, [warnings, dismissed])
+  }, [streetFiltered, dismissed])
 
-  const activeCount = warnings.length - dismissed.size
+  const activeCount = streetFiltered.length - [...dismissed].filter(id => streetFiltered.some(w => w.id === id)).length
 
   const isDesktopSide = !isMobile
 
@@ -113,33 +78,21 @@ export default memo(function WarningPanel({ selectedStreet, summary, aggregation
         <div className="flex items-center gap-2">
           <span style={{
             fontFamily: 'var(--font-display)', fontSize: 15, fontWeight: 700,
-            color: currentSource ? 'var(--solar-teal)' : 'var(--solar-amber)',
+            color: selectedStreet ? 'var(--solar-teal)' : 'var(--solar-amber)',
           }}>
             {displayName}
           </span>
           <span style={{ fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>
-            出力波动预警
+            出力预警
           </span>
-          {currentSource && (
-            <button onClick={() => setCurrentSource(null)}
-              className="transition-all active:scale-95"
-              style={{
-                fontFamily: 'var(--font-body)', fontSize: 9, color: 'var(--solar-amber)',
-                padding: '2px 8px', borderRadius: 100, cursor: 'pointer',
-                border: '1px solid var(--border-subtle)', background: 'transparent', marginLeft: 'auto',
-              }}>
-              返回全区
-            </button>
-          )}
         </div>
         <div style={{ fontFamily: 'var(--font-body)', fontSize: 9, color: 'var(--text-muted)', marginTop: 2 }}>
-          基于GHI辐照预测，检测出力曲线异常波动（排除日出日落正常变化）
+          基于天气系数变化率与绝对出力影响的双判据预警
         </div>
       </div>
 
       {/* Filters */}
       <div className="px-3 pb-2 flex flex-col gap-1.5">
-        {/* Level + type filters */}
         <div className="flex gap-1 flex-wrap">
           {(['red', 'orange', 'yellow', 'blue'] as const).map(level => {
             const count = counts[level]
@@ -176,7 +129,6 @@ export default memo(function WarningPanel({ selectedStreet, summary, aggregation
           )}
         </div>
 
-        {/* Show dismissed toggle */}
         {dismissed.size > 0 && (
           <button onClick={() => setShowDismissed(!showDismissed)}
             style={{ fontFamily: 'var(--font-body)', fontSize: 9, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}>
@@ -188,7 +140,7 @@ export default memo(function WarningPanel({ selectedStreet, summary, aggregation
       {/* Filter count */}
       {(levelFilter || typeFilter) && (
         <div className="px-4 pb-1" style={{ fontFamily: 'var(--font-data)', fontSize: 9, color: 'var(--text-muted)' }}>
-          筛选 {filtered.length}/{warnings.length}
+          筛选 {filtered.length}/{streetFiltered.length}
         </div>
       )}
 
@@ -196,37 +148,33 @@ export default memo(function WarningPanel({ selectedStreet, summary, aggregation
       <div className={`px-3 pb-3 space-y-1.5 ${isDesktopSide ? 'flex-1 overflow-y-auto' : ''}`}
         style={!isDesktopSide ? { maxHeight: isMobile ? '40vh' : 'calc(100vh - 160px)', overflowY: 'auto' } : {}}>
 
-        {loading && (
-          <div className="py-8 text-center" style={{ fontFamily: 'var(--font-data)', fontSize: 11, color: 'var(--text-muted)' }}>
-            分析出力曲线...
-          </div>
-        )}
-
-        {!loading && warnings.length === 0 && (
+        {warnings.length === 0 && (
           <div className="py-8 text-center">
             <div style={{ fontSize: 24, marginBottom: 8 }}>✓</div>
             <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--solar-green)' }}>
               未来24小时无异常波动
             </div>
             <div style={{ fontFamily: 'var(--font-body)', fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>
-              出力曲线变化在正常范围内
+              天气变化在正常范围内
             </div>
           </div>
         )}
 
-        {!loading && filtered.length === 0 && warnings.length > 0 && (
+        {filtered.length === 0 && warnings.length > 0 && (
           <div className="py-6 text-center" style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: 'var(--text-muted)' }}>
             暂无匹配预警
           </div>
         )}
 
-        {!loading && filtered.map((w, i) => {
-          const s = LEVEL_STYLE[w.level]
+        {filtered.map((w, i) => {
+          const s = LEVEL_STYLE[w.level] || LEVEL_STYLE.blue
           const isDismissed = dismissed.has(w.id)
-          const dateStr = w.fromTime.split(' ')[0].slice(5).replace('-', '/')
-          const fromH = w.fromTime.split(' ')[1]?.slice(0, 5)
-          const toH = w.toTime.split(' ')[1]?.slice(0, 5)
-          const fmtPower = (kw: number) => kw >= 1000 ? `${(kw / 1000).toFixed(1)}MW` : `${kw}kW`
+          const dateStr = w.from_time.split(' ')[0].slice(5).replace('-', '/')
+          const fromH = w.from_time.split(' ')[1]?.slice(0, 5)
+          const toH = w.to_time.split(' ')[1]?.slice(0, 5)
+          const fmtPower = (kw: number) => kw >= 1000 ? `${(kw / 1000).toFixed(1)}MW` : `${Math.round(kw)}kW`
+          const typeLabel = w.type === 'ramp_down' ? '↓ 骤降' : '↑ 骤增'
+          const ratePercent = Math.round(w.change_rate * 100)
 
           return (
             <div key={w.id}
@@ -236,38 +184,46 @@ export default memo(function WarningPanel({ selectedStreet, summary, aggregation
                 borderLeft: `2.5px solid ${s.color}`,
                 animationDelay: `${0.02 + i * 0.015}s`,
                 opacity: isDismissed ? 0.35 : 1,
-              }}>
+                cursor: 'pointer',
+              }}
+              onClick={() => onStreetClick(w.street)}>
               <div className="flex items-center justify-between">
-                {/* Left: level + type + ramp rate */}
                 <div className="flex items-center gap-2">
                   <span className="data-value" style={{ fontSize: 9, color: s.color }}>{w.label}</span>
                   <span className="data-value" style={{
                     fontSize: 9,
                     color: w.type === 'ramp_down' ? 'var(--solar-coral)' : 'var(--solar-green)',
                   }}>
-                    {TYPE_LABEL[w.type]} {w.rampRatePercent}%/h
+                    {typeLabel} {ratePercent}%
                   </span>
                 </div>
-                {/* Right: dismiss */}
                 {!isDismissed ? (
-                  <button onClick={() => setDismissed(prev => new Set(prev).add(w.id))}
+                  <button onClick={(e) => { e.stopPropagation(); setDismissed(prev => new Set(prev).add(w.id)) }}
                     style={{ fontFamily: 'var(--font-body)', fontSize: 8, color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px' }}>
                     忽略
                   </button>
                 ) : (
-                  <button onClick={() => setDismissed(prev => { const ns = new Set(prev); ns.delete(w.id); return ns })}
+                  <button onClick={(e) => { e.stopPropagation(); setDismissed(prev => { const ns = new Set(prev); ns.delete(w.id); return ns }) }}
                     style={{ fontFamily: 'var(--font-body)', fontSize: 8, color: 'var(--solar-amber)', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 4px' }}>
                     恢复
                   </button>
                 )}
               </div>
               <div className="flex items-center gap-2 mt-1" style={{ fontFamily: 'var(--font-data)', fontSize: 10 }}>
+                <span style={{ color: 'var(--text-muted)' }}>{w.street}</span>
                 <span style={{ color: 'var(--text-muted)' }}>{dateStr}</span>
                 <span style={{ color: 'var(--text-bright)' }}>{fromH}→{toH}</span>
-                <span style={{ color: 'var(--text-bright)' }}>{fmtPower(w.fromPowerKw)}</span>
+                <span style={{ color: 'var(--text-bright)' }}>{fmtPower(w.from_power_kw)}</span>
                 <span style={{ color: s.color }}>{w.type === 'ramp_down' ? '▾' : '▴'}</span>
-                <span style={{ color: 'var(--text-bright)' }}>{fmtPower(w.toPowerKw)}</span>
-                <span style={{ color: 'var(--text-muted)', fontSize: 9 }}>GHI{w.ghiChange > 0 ? '+' : ''}{w.ghiChange}</span>
+                <span style={{ color: 'var(--text-bright)' }}>{fmtPower(w.to_power_kw)}</span>
+              </div>
+              <div className="flex items-center gap-2 mt-0.5" style={{ fontFamily: 'var(--font-data)', fontSize: 9 }}>
+                <span style={{ color: 'var(--text-muted)' }}>
+                  {w.weather_from}→{w.weather_to}
+                </span>
+                <span style={{ color: s.color }}>
+                  Δ{w.abs_change_kw >= 1000 ? `${(w.abs_change_kw / 1000).toFixed(1)}MW` : `${Math.round(w.abs_change_kw)}kW`}
+                </span>
               </div>
             </div>
           )
