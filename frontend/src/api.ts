@@ -1,9 +1,20 @@
-const BASE = '/api'
+const BASE = `${import.meta.env.BASE_URL}api`
 
 export async function fetchJSON<T>(path: string, method: 'GET' | 'POST' = 'GET'): Promise<T> {
   const res = await fetch(`${BASE}${path}`, { method })
   if (!res.ok) throw new Error(`API error: ${res.status}`)
   return res.json()
+}
+
+export interface PVUser {
+  id: string
+  name: string
+  address: string
+  street: string
+  lat: number
+  lon: number
+  capacity_kw: number
+  status: string
 }
 
 export interface StreetAggregation {
@@ -26,6 +37,7 @@ export interface PVSummary {
 export interface PowerPrediction {
   time: string
   clearsky_ratio: number
+  clearsky_power_kw: number
   weather_factor: number
   predicted_power_kw: number
   weather_text: string
@@ -55,6 +67,38 @@ export interface TotalPrediction {
   total_capacity_kw: number
 }
 
+export interface HourlyWeather {
+  time: string
+  icon: number
+  text: string
+  temp: number
+  humidity: number
+  cloud: number
+  pop: number
+  wind_speed: number
+  precip: number
+}
+
+export interface WeatherForecast {
+  street: string
+  update_time: string
+  hourly: HourlyWeather[]
+}
+
+export interface SolarRadiation {
+  time: string
+  ghi: number
+  dni: number
+  dhi: number
+  elevation: number
+}
+
+export interface SolarRadiationForecast {
+  lat: number
+  lon: number
+  forecasts: SolarRadiation[]
+}
+
 export interface WeatherSummaryItem {
   street: string
   current_text: string
@@ -65,6 +109,7 @@ export interface WeatherSummaryItem {
 }
 
 export const api = {
+  getPVUsers: () => fetchJSON<PVUser[]>('/pv-users/list'),
   getSummary: () => fetchJSON<PVSummary>('/pv-users/summary'),
   getAggregations: () => fetchJSON<StreetAggregation[]>('/pv-users/aggregation'),
   getStreetPower: (street: string) =>
@@ -74,4 +119,10 @@ export const api = {
   getCurrentWarnings: () => fetchJSON<WarningRecord[]>('/warning/current'),
   getClearskyCurve: () => fetchJSON<{ date: string; curve: Record<string, number> }>('/forecast/curve'),
   getWeatherSummary: () => fetchJSON<WeatherSummaryItem[]>('/weather/summary'),
+  getWeatherForecast: (street: string) =>
+    fetchJSON<WeatherForecast>(`/weather/forecast/${encodeURIComponent(street)}`),
+  getAllWeatherForecast: () =>
+    fetchJSON<Record<string, WeatherForecast>>('/weather/forecast'),
+  getSolarRadiation: (hours = 24) =>
+    fetchJSON<SolarRadiationForecast>(`/weather/solar-radiation?hours=${hours}`),
 }

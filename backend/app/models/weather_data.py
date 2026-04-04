@@ -19,3 +19,19 @@ class WeatherForecast(BaseModel):
     street: str
     update_time: str
     hourly: list[HourlyWeather]
+
+
+class SolarRadiation(BaseModel):
+    """逐小时太阳辐射数据"""
+    time: str           # 预报时间 yyyy-MM-dd HH:mm
+    ghi: float          # 总水平辐照度 W/m²
+    dni: float          # 直接法向辐照度 W/m²
+    dhi: float          # 散射水平辐照度 W/m²
+    elevation: float    # 太阳高度角
+
+
+class SolarRadiationForecast(BaseModel):
+    """太阳辐射预报响应"""
+    lat: float
+    lon: float
+    forecasts: list[SolarRadiation]

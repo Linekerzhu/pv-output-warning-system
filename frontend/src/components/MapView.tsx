@@ -1,152 +1,206 @@
-import { MapContainer, TileLayer, CircleMarker, Polygon, Marker, useMap } from 'react-leaflet'
+import { memo, useMemo } from 'react'
+import { MapContainer, TileLayer, CircleMarker, Polygon, Marker, Tooltip } from 'react-leaflet'
 import L from 'leaflet'
-import { useEffect } from 'react'
-import type { StreetAggregation, WarningRecord, WeatherSummaryItem } from '../api'
-import { JINSHAN_BOUNDARY } from '../data/jinshan-boundary'
+import type { PVUser, StreetAggregation, WarningRecord, WeatherSummaryItem } from '../api'
+import { TOWN_BOUNDARIES } from '../data/jinshan-boundary'
+import { LEVEL_COLORS_RAW } from '../tokens'
 
 interface Props {
+  pvUsers: PVUser[]
   aggregations: StreetAggregation[]
   warnings: WarningRecord[]
   weatherSummary: WeatherSummaryItem[]
   onStreetClick: (street: string) => void
   selectedStreet: string | null
+  outputRatio: number
 }
 
-const LEVEL_COLORS: Record<string, string> = {
-  red: '#ff1744',
-  orange: '#ff9100',
-  yellow: '#ffea00',
-  blue: '#00e5ff',
-}
+const T = {
+  bgPanel: 'rgba(14,15,21,0.85)',
+  bgPanelSelected: 'rgba(14,15,21,0.92)',
+  textBright: '#f0ede6',
+  textSecondary: '#706c62',
+  textMuted: '#78746b',
+  textDim: '#4a4740',
+  solarAmber: '#dba14a',
+  solarGreen: '#6ec472',
+  solarCoral: '#e06456',
+} as const
 
-function getStreetWarningLevel(street: string, warnings: WarningRecord[]): string | null {
-  const sw = warnings.filter(w => w.street === street)
-  if (!sw.length) return null
-  for (const l of ['red', 'orange', 'yellow', 'blue']) {
-    if (sw.some(w => w.level === l)) return l
-  }
-  return null
-}
-
-// Weather icon mapping (simplified)
-function weatherEmoji(icon: number): string {
-  if (icon === 100 || icon === 150) return '\u2600\uFE0F'     // sunny
-  if (icon === 101 || icon === 151) return '\u26C5'            // few clouds
-  if (icon >= 102 && icon <= 103) return '\u2601\uFE0F'        // cloudy
-  if (icon === 104) return '\u2601\uFE0F'                      // overcast
-  if (icon >= 300 && icon <= 318) return '\uD83C\uDF27\uFE0F'  // rain
-  if (icon >= 400 && icon <= 410) return '\u2744\uFE0F'        // snow
-  if (icon >= 500 && icon <= 515) return '\uD83C\uDF2B\uFE0F'  // fog
+function weatherIcon(code: number): string {
+  if (code === 100 || code === 150) return '\u2600\uFE0F'
+  if (code === 101 || code === 151) return '\u26C5'
+  if (code >= 102 && code <= 104) return '\u2601\uFE0F'
+  if (code >= 300 && code <= 318) return '\uD83C\uDF27\uFE0F'
+  if (code >= 400 && code <= 410) return '\u2744\uFE0F'
+  if (code >= 500 && code <= 515) return '\uD83C\uDF2B\uFE0F'
   return '\u2601\uFE0F'
 }
 
-// Current time display component
-function TimeOverlay() {
-  const map = useMap()
-  useEffect(() => {
-    const control = new L.Control({ position: 'topright' })
-    control.onAdd = () => {
-      const div = L.DomUtil.create('div')
-      const now = new Date()
-      const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false, hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Shanghai' })
-      const dateStr = now.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit', timeZone: 'Asia/Shanghai' })
-      div.innerHTML = `
-        <div style="
-          background: rgba(12,14,24,0.9);
-          backdrop-filter: blur(12px);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 8px;
-          padding: 6px 12px;
-          color: #f0f0f5;
-          font-family: Inter, sans-serif;
-          font-size: 11px;
-          text-align: center;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-        ">
-          <div style="font-size: 16px; font-weight: 600; letter-spacing: 1px;">${timeStr}</div>
-          <div style="color: #8b8fa3; font-size: 10px; margin-top: 1px;">UTC+8 ${dateStr}</div>
-        </div>
-      `
-      return div
-    }
-    control.addTo(map)
-    return () => { control.remove() }
-  }, [map])
-  return null
-}
+/* Pre-compute town polygon positions (static data, never changes) */
+const TOWN_POSITIONS = TOWN_BOUNDARIES.map(town => ({
+  name: town.name,
+  center: town.center,
+  rings: town.type === 'Polygon'
+    ? town.coordinates as [number, number][][]
+    : (town.coordinates as [number, number][][][]).map(poly => poly[0]),
+}))
 
-// Create a DivIcon for weather label on map
-function createWeatherLabel(
+function createCenteredLabel(
   street: string,
   weather: WeatherSummaryItem | undefined,
   wLevel: string | null,
-  capacityKw: number,
+  agg: StreetAggregation | undefined,
   isSelected: boolean,
 ): L.DivIcon {
-  const color = wLevel ? LEVEL_COLORS[wLevel] : '#00e676'
-  const borderColor = isSelected ? '#ffffff' : color
-  const currentEmoji = weather ? weatherEmoji(weather.current_icon) : ''
-  const currentText = weather?.current_text || '--'
-  const nextText = weather?.next_hour_text || '--'
-  const nextEmoji = weather?.next_hour_icon ? weatherEmoji(weather.next_hour_icon) : ''
+  const accent = wLevel ? (LEVEL_COLORS_RAW[wLevel] || T.solarGreen) : T.solarGreen
+  const currentE = weather ? weatherIcon(weather.current_icon) : ''
+  const currentText = weather?.current_text || ''
+  const nextE = weather?.next_hour_icon ? weatherIcon(weather.next_hour_icon) : ''
+  const nextText = weather?.next_hour_text || ''
   const changed = weather?.weather_change
-  const arrow = changed ? `<span style="color:${LEVEL_COLORS.orange}">→</span>` : '→'
+  const capacity = agg ? `${agg.total_capacity_kw.toFixed(0)}kW` : ''
+  const bg = isSelected ? T.bgPanelSelected : T.bgPanel
+  const dotPulse = wLevel ? 'animation: pulse-warm 2.5s ease-in-out infinite;' : ''
+
+  const weatherLine = currentText ? `
+    <div style="display:flex; align-items:center; justify-content:center; gap:3px; font-family:'Fira Code',monospace; font-size:9px; color:${T.textMuted};">
+      <span>${currentE} ${currentText}</span>
+      ${nextText && nextText !== currentText ? `
+        <span style="font-size:7px; opacity:0.4;">›</span>
+        <span style="${changed ? `color:${T.solarAmber};` : `color:${T.textSecondary};`}">${nextE} ${nextText}</span>
+      ` : ''}
+    </div>
+  ` : ''
 
   return L.divIcon({
     className: '',
     iconSize: [0, 0],
-    iconAnchor: [0, 20],
+    iconAnchor: [0, 0],
     html: `
       <div style="
-        position: relative;
-        transform: translate(-50%, -100%);
+        transform: translate(-50%, -50%);
         white-space: nowrap;
         pointer-events: auto;
         cursor: pointer;
+        text-align: center;
       ">
         <div style="
-          background: rgba(12,14,24,0.92);
-          backdrop-filter: blur(12px);
-          border: 1px solid ${borderColor}40;
-          border-left: 3px solid ${borderColor};
+          background: ${bg};
+          border: 1px solid ${accent}20;
           border-radius: 8px;
-          padding: 6px 10px;
-          font-family: Inter, sans-serif;
-          box-shadow: 0 4px 20px ${color}15;
-          min-width: 120px;
+          padding: 5px 10px;
+          font-family: 'Outfit', sans-serif;
+          display: inline-block;
+          ${isSelected ? `box-shadow: 0 0 20px ${accent}15;` : ''}
         ">
-          <div style="display:flex; align-items:center; gap:4px; margin-bottom:3px;">
+          <div style="display:flex; align-items:center; justify-content:center; gap:5px; margin-bottom:${weatherLine ? '3px' : '0'};">
             <span style="
-              width:6px; height:6px; border-radius:50%;
-              background:${color};
-              box-shadow: 0 0 6px ${color};
+              width:4px; height:4px; border-radius:50%;
+              background:${accent};
+              box-shadow: 0 0 6px ${accent}50;
               display:inline-block;
-              ${wLevel ? 'animation: pulse-dot 2s ease-in-out infinite;' : ''}
+              ${dotPulse}
+              color:${accent};
             "></span>
-            <span style="font-size:12px; font-weight:600; color:#f0f0f5;">${street}</span>
-            <span style="font-size:10px; color:#555770; margin-left:auto;">${capacityKw.toFixed(0)}kW</span>
+            <span style="font-family:'Unbounded',sans-serif; font-size:${isSelected ? '11px' : '10px'}; font-weight:${isSelected ? '700' : '600'}; color:${T.textBright}; letter-spacing:0.3px;">
+              ${street}
+            </span>
+            ${capacity ? `<span style="font-family:'Fira Code',monospace; font-size:8px; color:${T.textMuted}; margin-left:2px;">${capacity}</span>` : ''}
           </div>
-          <div style="font-size:11px; color:#c0c4d8; display:flex; align-items:center; gap:3px;">
-            <span>${currentEmoji} ${currentText}</span>
-            <span style="color:#555770; font-size:10px;">${arrow}</span>
-            <span style="${changed ? `color:${LEVEL_COLORS.orange}; font-weight:500;` : ''}">${nextEmoji} ${nextText}</span>
-          </div>
+          ${weatherLine}
         </div>
-        <div style="
-          position:absolute; bottom:-5px; left:50%;
-          transform:translateX(-50%);
-          width:8px; height:8px; rotate:45deg;
-          background:rgba(12,14,24,0.92);
-          border-right:1px solid ${borderColor}40;
-          border-bottom:1px solid ${borderColor}40;
-        "></div>
       </div>
     `,
   })
 }
 
-export default function MapView({ aggregations, warnings, weatherSummary, onStreetClick, selectedStreet }: Props) {
-  const weatherMap = new Map(weatherSummary.map(w => [w.street, w]))
+/* Tooltip SVG — only computed when tooltip is actually rendered by Leaflet */
+function StationTooltip({ user, color, currentOutput }: {
+  user: PVUser; color: string; currentOutput: number
+}) {
+  const isRunning = user.status === '运行'
+  const maxR = 28
+  const rCap = Math.max(8, maxR * Math.sqrt(user.capacity_kw / 5000))
+  const rOut = currentOutput > 0 ? Math.max(4, maxR * Math.sqrt(currentOutput / 5000)) : 0
+  const svgW = rCap * 2 + 12
+  const svgH = rCap * 2 + 6
+  const baseline = svgH - 2
+  const cx = svgW / 2
+
+  return (
+    <div style={{
+      fontFamily: 'Outfit, sans-serif', color: T.textBright,
+      background: 'rgba(14,15,21,0.94)', padding: '8px 12px', borderRadius: 8,
+      border: `1px solid ${color}30`, whiteSpace: 'nowrap', minWidth: 140,
+    }}>
+      <div style={{ fontSize: 11, fontWeight: 600, marginBottom: 6 }}>{user.name}</div>
+
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', marginBottom: 6 }}>
+        <svg width={svgW} height={svgH} style={{ display: 'block' }}>
+          <circle cx={cx} cy={baseline - rCap} r={rCap}
+            fill={`${color}15`} stroke={color} strokeWidth="1" opacity="0.6" />
+          {rOut > 0 && (
+            <circle cx={cx} cy={baseline - rOut} r={rOut}
+              fill={color} fillOpacity="0.5" stroke={color} strokeWidth="1" opacity="0.9" />
+          )}
+          <line x1={cx - rCap} y1={baseline} x2={cx + rCap} y2={baseline}
+            stroke={T.textMuted} strokeWidth="0.5" opacity="0.3" />
+        </svg>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, fontFamily: 'Fira Code, monospace' }}>
+        <div>
+          <div style={{ color: T.textMuted, marginBottom: 1 }}>装机</div>
+          <div style={{ color: T.textBright }}>
+            {user.capacity_kw >= 1000 ? `${(user.capacity_kw / 1000).toFixed(1)}MW` : `${user.capacity_kw}kW`}
+          </div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ color: T.textMuted, marginBottom: 1 }}>出力</div>
+          <div style={{ color: currentOutput > 0 ? T.solarGreen : T.textMuted }}>
+            {currentOutput > 0 ? (currentOutput >= 1000 ? `${(currentOutput / 1000).toFixed(1)}MW` : `${currentOutput.toFixed(0)}kW`) : '--'}
+          </div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ color: T.textMuted, marginBottom: 1 }}>状态</div>
+          <div style={{ color: isRunning ? T.solarGreen : T.solarCoral }}>{user.status}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default memo(function MapView({ pvUsers, aggregations, warnings, weatherSummary, onStreetClick, selectedStreet, outputRatio }: Props) {
+  const weatherMap = useMemo(() => new Map(weatherSummary.map(w => [w.street, w])), [weatherSummary])
+  const aggMap = useMemo(() => new Map(aggregations.map(a => [a.street, a])), [aggregations])
+
+  // Pre-compute warning level per street — O(1) lookup instead of O(warnings) per use
+  const warningLevelMap = useMemo(() => {
+    const m = new Map<string, string>()
+    const priority = ['red', 'orange', 'yellow', 'blue']
+    for (const w of warnings) {
+      const existing = m.get(w.street)
+      if (!existing || priority.indexOf(w.level) < priority.indexOf(existing)) {
+        m.set(w.street, w.level)
+      }
+    }
+    return m
+  }, [warnings])
+
+  // Memoize town label icons — only recompute when inputs change
+  const townIcons = useMemo(() => {
+    return TOWN_POSITIONS.map(town => ({
+      ...town,
+      icon: createCenteredLabel(
+        town.name,
+        weatherMap.get(town.name),
+        warningLevelMap.get(town.name) || null,
+        aggMap.get(town.name),
+        town.name === selectedStreet,
+      ),
+    }))
+  }, [weatherMap, aggMap, warningLevelMap, selectedStreet])
 
   return (
     <div className="absolute inset-0 z-0">
@@ -157,67 +211,70 @@ export default function MapView({ aggregations, warnings, weatherSummary, onStre
         zoomControl={false}
         attributionControl={false}
       >
-        {/* Dark basemap - CartoDB dark matter (no labels for cleaner look) */}
         <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png" />
-        {/* Labels layer on top */}
-        <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png" />
 
-        {/* Time display */}
-        <TimeOverlay />
+        {/* Town boundaries */}
+        {TOWN_POSITIONS.map(town => {
+          const wLevel = warningLevelMap.get(town.name) || null
+          const isSelected = town.name === selectedStreet
+          const color = wLevel ? (LEVEL_COLORS_RAW[wLevel] || T.solarAmber) : T.solarAmber
 
-        {/* District boundary */}
-        <Polygon
-          positions={JINSHAN_BOUNDARY}
-          pathOptions={{
-            color: '#00e5ff',
-            weight: 2,
-            opacity: 0.4,
-            fillColor: '#00e5ff',
-            fillOpacity: 0.03,
-            dashArray: '8 4',
-          }}
-        />
+          return town.rings.map((ring, i) => (
+            <Polygon
+              key={`town-${town.name}-${i}`}
+              positions={ring}
+              pathOptions={{
+                color,
+                weight: isSelected ? 2 : 1,
+                opacity: isSelected ? 0.8 : 0.35,
+                fillColor: color,
+                fillOpacity: isSelected ? 0.15 : 0.06,
+              }}
+              eventHandlers={{ click: () => onStreetClick(town.name) }}
+            />
+          ))
+        })}
 
-        {/* Street area circles (soft glow background) */}
-        {aggregations.map(agg => {
-          const wLevel = getStreetWarningLevel(agg.street, warnings)
-          const color = wLevel ? LEVEL_COLORS[wLevel] : '#00e676'
-          const isSelected = agg.street === selectedStreet
-          const r = Math.max(12, Math.min(35, Math.sqrt(agg.total_capacity_kw / 4)))
+        {/* PV station dots — radius by capacity, tooltip on hover */}
+        {pvUsers.map(user => {
+          const isRunning = user.status === '运行'
+          const wLevel = warningLevelMap.get(user.street) || null
+          const isInSelected = user.street === selectedStreet
+          const color = !isRunning ? T.textDim
+            : wLevel ? (LEVEL_COLORS_RAW[wLevel] || T.solarGreen) : T.solarGreen
+          const currentOutput = isRunning ? user.capacity_kw * outputRatio : 0
+          const rDot = Math.max(3, Math.min(14, Math.sqrt(user.capacity_kw / 10)))
 
           return (
             <CircleMarker
-              key={`circle-${agg.street}`}
-              center={[agg.center_lat, agg.center_lon]}
-              radius={r}
+              key={user.id}
+              center={[user.lat, user.lon]}
+              radius={rDot}
               pathOptions={{
-                color: isSelected ? '#ffffff' : color,
+                color: isInSelected ? T.textBright : color,
                 fillColor: color,
-                fillOpacity: isSelected ? 0.25 : 0.12,
-                weight: isSelected ? 2 : 0.5,
+                fillOpacity: isRunning ? (isInSelected ? 0.9 : 0.6) : 0.15,
+                weight: isInSelected ? 1.5 : 0.5,
               }}
-              eventHandlers={{ click: () => onStreetClick(agg.street) }}
-            />
+              eventHandlers={{ click: () => onStreetClick(user.street) }}
+            >
+              <Tooltip direction="top" offset={[0, -rDot]} pane="tooltipPane">
+                <StationTooltip user={user} color={color} currentOutput={currentOutput} />
+              </Tooltip>
+            </CircleMarker>
           )
         })}
 
-        {/* Street weather labels */}
-        {aggregations.map(agg => {
-          const wLevel = getStreetWarningLevel(agg.street, warnings)
-          const weather = weatherMap.get(agg.street)
-          const isSelected = agg.street === selectedStreet
-          const icon = createWeatherLabel(agg.street, weather, wLevel, agg.total_capacity_kw, isSelected)
-
-          return (
-            <Marker
-              key={`label-${agg.street}`}
-              position={[agg.center_lat, agg.center_lon]}
-              icon={icon}
-              eventHandlers={{ click: () => onStreetClick(agg.street) }}
-            />
-          )
-        })}
+        {/* Centered town labels */}
+        {townIcons.map(town => (
+          <Marker
+            key={`label-${town.name}`}
+            position={town.center}
+            icon={town.icon}
+            eventHandlers={{ click: () => onStreetClick(town.name) }}
+          />
+        ))}
       </MapContainer>
     </div>
   )
-}
+})

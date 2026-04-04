@@ -61,6 +61,15 @@ async def get_weather_summary():
     return summary
 
 
+@router.get("/solar-radiation")
+async def get_solar_radiation(hours: int = 24):
+    """获取金山区太阳辐射预报（GHI/DNI/DHI）"""
+    data = await weather_service.get_solar_radiation(lat=30.82, lon=121.20, hours=hours)
+    if not data:
+        raise HTTPException(status_code=503, detail="太阳辐射数据获取失败")
+    return data
+
+
 @router.get("/streets")
 async def get_streets():
     """获取金山区所有街道列表"""

@@ -22,6 +22,7 @@ class PowerPrediction(BaseModel):
     """单时段出力预测"""
     time: str
     clearsky_ratio: float       # 晴空理论出力比(0-1)
+    clearsky_power_kw: float    # 晴空理论出力绝对值 kW
     weather_factor: float       # 天气出力系数
     predicted_power_kw: float   # 预测出力 kW
     weather_text: str           # 天气描述
