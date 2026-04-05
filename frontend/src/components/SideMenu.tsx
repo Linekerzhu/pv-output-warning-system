@@ -1,6 +1,6 @@
 import { memo, type ReactNode } from 'react'
 
-export type PanelType = 'weather' | 'warnings' | 'history' | null
+export type PanelType = 'weather' | 'warnings' | 'history' | 'load' | null
 
 interface Props {
   activePanel: PanelType
@@ -35,6 +35,18 @@ const ITEMS: { id: PanelType; label: string; icon: ReactNode }[] = [
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
         <circle cx="12" cy="12" r="10" />
         <polyline points="12 6 12 12 16 14" />
+      </svg>
+    ),
+  },
+  {
+    id: 'load' as PanelType,
+    label: '负荷预测',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <rect x="3" y="3" width="7" height="7" rx="1" />
+        <rect x="14" y="3" width="7" height="7" rx="1" />
+        <rect x="3" y="14" width="7" height="7" rx="1" />
+        <rect x="14" y="14" width="7" height="7" rx="1" />
       </svg>
     ),
   },

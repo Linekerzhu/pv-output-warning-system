@@ -4,6 +4,7 @@ import L from 'leaflet'
 import type { PVUser, StreetAggregation, WarningRecord, WeatherSummaryItem } from '../api'
 import { TOWN_BOUNDARIES } from '../data/jinshan-boundary'
 import { LEVEL_COLORS_RAW } from '../tokens'
+import GhiGridOverlay from './GhiGridOverlay'
 
 interface Props {
   pvUsers: PVUser[]
@@ -13,6 +14,7 @@ interface Props {
   onStreetClick: (street: string) => void
   selectedStreet: string | null
   outputRatio: number
+  showGhiGrid?: boolean
 }
 
 const T = {
@@ -171,7 +173,7 @@ function StationTooltip({ user, color, currentOutput }: {
   )
 }
 
-export default memo(function MapView({ pvUsers, aggregations, warnings, weatherSummary, onStreetClick, selectedStreet, outputRatio }: Props) {
+export default memo(function MapView({ pvUsers, aggregations, warnings, weatherSummary, onStreetClick, selectedStreet, outputRatio, showGhiGrid }: Props) {
   const weatherMap = useMemo(() => new Map(weatherSummary.map(w => [w.street, w])), [weatherSummary])
   const aggMap = useMemo(() => new Map(aggregations.map(a => [a.street, a])), [aggregations])
 
@@ -213,7 +215,10 @@ export default memo(function MapView({ pvUsers, aggregations, warnings, weatherS
       >
         <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png" />
 
-        {/* Town boundaries */}
+        {/* GHI Grid overlay */}
+        <GhiGridOverlay visible={!!showGhiGrid} />
+
+        {/* Town boundaries — in GHI grid mode show outline only, no fill, no interaction */}
         {TOWN_POSITIONS.map(town => {
           const wLevel = warningLevelMap.get(town.name) || null
           const isSelected = town.name === selectedStreet
@@ -223,25 +228,33 @@ export default memo(function MapView({ pvUsers, aggregations, warnings, weatherS
             <Polygon
               key={`town-${town.name}-${i}`}
               positions={ring}
-              pathOptions={{
+              pathOptions={showGhiGrid ? {
+                color: T.solarAmber,
+                weight: 1.5,
+                opacity: 0.6,
+                fillOpacity: 0,
+              } : {
                 color,
                 weight: isSelected ? 2 : 1,
                 opacity: isSelected ? 0.8 : 0.35,
                 fillColor: color,
                 fillOpacity: isSelected ? 0.15 : 0.06,
               }}
-              eventHandlers={{ click: () => onStreetClick(town.name) }}
+              interactive={!showGhiGrid}
+              {...(!showGhiGrid ? { eventHandlers: { click: () => onStreetClick(town.name) } } : {})}
             />
           ))
         })}
 
-        {/* PV station dots — radius by capacity, tooltip on hover */}
+        {/* PV station dots — simplified in GHI grid mode (no click, muted style) */}
         {pvUsers.map(user => {
           const isRunning = user.status === '运行'
           const wLevel = warningLevelMap.get(user.street) || null
-          const isInSelected = user.street === selectedStreet
-          const color = !isRunning ? T.textDim
-            : wLevel ? (LEVEL_COLORS_RAW[wLevel] || T.solarGreen) : T.solarGreen
+          const isInSelected = !showGhiGrid && user.street === selectedStreet
+          const color = showGhiGrid
+            ? (isRunning ? 'rgba(240,237,230,0.5)' : T.textDim)
+            : (!isRunning ? T.textDim
+              : wLevel ? (LEVEL_COLORS_RAW[wLevel] || T.solarGreen) : T.solarGreen)
           const currentOutput = isRunning ? user.capacity_kw * outputRatio : 0
           const rDot = Math.max(3, Math.min(14, Math.sqrt(user.capacity_kw / 10)))
 
@@ -249,24 +262,27 @@ export default memo(function MapView({ pvUsers, aggregations, warnings, weatherS
             <CircleMarker
               key={user.id}
               center={[user.lat, user.lon]}
-              radius={rDot}
+              radius={showGhiGrid ? Math.max(2, rDot * 0.7) : rDot}
               pathOptions={{
-                color: isInSelected ? T.textBright : color,
+                color: showGhiGrid ? 'rgba(240,237,230,0.3)' : (isInSelected ? T.textBright : color),
                 fillColor: color,
-                fillOpacity: isRunning ? (isInSelected ? 0.9 : 0.6) : 0.15,
-                weight: isInSelected ? 1.5 : 0.5,
+                fillOpacity: showGhiGrid ? 0.3 : (isRunning ? (isInSelected ? 0.9 : 0.6) : 0.15),
+                weight: showGhiGrid ? 0.3 : (isInSelected ? 1.5 : 0.5),
               }}
-              eventHandlers={{ click: () => onStreetClick(user.street) }}
+              interactive={!showGhiGrid}
+              {...(!showGhiGrid ? { eventHandlers: { click: () => onStreetClick(user.street) } } : {})}
             >
-              <Tooltip direction="top" offset={[0, -rDot]} pane="tooltipPane">
-                <StationTooltip user={user} color={color} currentOutput={currentOutput} />
-              </Tooltip>
+              {!showGhiGrid && (
+                <Tooltip direction="top" offset={[0, -rDot]} pane="tooltipPane">
+                  <StationTooltip user={user} color={color} currentOutput={currentOutput} />
+                </Tooltip>
+              )}
             </CircleMarker>
           )
         })}
 
-        {/* Centered town labels */}
-        {townIcons.map(town => (
+        {/* Centered town labels — hidden in GHI grid mode */}
+        {!showGhiGrid && townIcons.map(town => (
           <Marker
             key={`label-${town.name}`}
             position={town.center}
