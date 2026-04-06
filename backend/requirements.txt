@@ -10,3 +10,4 @@ apscheduler==3.10.4
 python-dotenv==1.0.1
 loguru==0.7.2
 asyncpg==0.30.0
+netCDF4>=1.6.0

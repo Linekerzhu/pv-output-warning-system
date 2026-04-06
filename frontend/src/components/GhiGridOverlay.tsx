@@ -3,9 +3,11 @@ import { useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { GHI_GRID, HEX_S_LAT, HEX_S_LON } from '../data/ghi-grid'
 import { SUBSTATIONS } from '../data/substations'
+import type { PVUser } from '../api'
 
 interface Props {
   visible: boolean
+  pvUsers: PVUser[]
 }
 
 const HALF_W = HEX_S_LON * Math.sqrt(3) / 2
@@ -60,13 +62,14 @@ const HEX_VERTICES = GHI_GRID.map(cell => ({
   vertices: hexVertices(cell.lat, cell.lon),
 }))
 
-export default memo(function GhiGridOverlay({ visible }: Props) {
+export default memo(function GhiGridOverlay({ visible, pvUsers }: Props) {
   const map = useMap()
   const groupRef = useRef<L.LayerGroup | null>(null)
   const polysRef = useRef<Map<string, L.Polygon>>(new Map())
   const tooltipRef = useRef<L.Tooltip | null>(null)
   const ghiRef = useRef<Map<string, number>>(new Map())
   const builtRef = useRef(false)
+  const linesGroupRef = useRef<L.LayerGroup | null>(null)
   const [tick, setTick] = useState(0)
 
   // Refresh mock GHI every 30 seconds
@@ -176,7 +179,52 @@ export default memo(function GhiGridOverlay({ visible }: Props) {
     }
   }, [map])
 
-  // Show/hide — no destroy/recreate, instant toggle
+  // Power lines: PV user → substation (simple polylines)
+  useEffect(() => {
+    if (linesGroupRef.current) {
+      if (map.hasLayer(linesGroupRef.current)) map.removeLayer(linesGroupRef.current)
+      linesGroupRef.current = null
+    }
+
+    if (!visible || pvUsers.length === 0) return
+
+    const ssMap = new Map(SUBSTATIONS.map(s => [s.id, s]))
+    // Use SVG renderer so CSS dash animation works (Canvas doesn't support it)
+    const svgRenderer = L.svg({ padding: 0.1 })
+    const group = L.layerGroup()
+
+    for (const u of pvUsers) {
+      if (!u.substation_id) continue
+      const ss = ssMap.get(u.substation_id)
+      if (!ss) continue
+
+      const line = L.polyline(
+        [[u.lat, u.lon], [ss.lat, ss.lon]],
+        {
+          color: '#6ec472',
+          weight: 1,
+          opacity: 0.4,
+          dashArray: '4 8',
+          interactive: false,
+          renderer: svgRenderer,
+          className: 'power-flow-line',
+        }
+      )
+      line.addTo(group)
+    }
+
+    group.addTo(map)
+    linesGroupRef.current = group
+
+    return () => {
+      if (linesGroupRef.current) {
+        if (map.hasLayer(linesGroupRef.current)) map.removeLayer(linesGroupRef.current)
+        linesGroupRef.current = null
+      }
+    }
+  }, [visible, pvUsers, map])
+
+  // Show/hide hex grid group
   useEffect(() => {
     const group = groupRef.current
     if (!group) return

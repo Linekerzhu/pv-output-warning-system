@@ -227,6 +227,14 @@ body {
 .leaflet-popup-tip { display: none !important; }
 .leaflet-tooltip { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
 
+/* ── Power flow line animation ── */
+.power-flow-line {
+  animation: dash-flow 2s linear infinite;
+}
+@keyframes dash-flow {
+  to { stroke-dashoffset: -24; }
+}
+
 /* ── Mobile tab bar ── */
 .mobile-tab-bar {
   display: flex;

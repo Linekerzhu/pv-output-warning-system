@@ -11,6 +11,9 @@ class PVUser(BaseModel):
     lon: float                 # 经度
     capacity_kw: float         # 装机容量 (kW)
     status: str = "运行"       # 状态: 运行/停运
+    substation_id: str | None = None   # 上级变电站ID
+    feeder_id: str | None = None       # 馈线ID（预留）
+    grid_id: str | None = None         # 所属GHI网格ID
 
 
 class StreetAggregation(BaseModel):

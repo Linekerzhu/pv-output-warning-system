@@ -217,7 +217,7 @@ export default memo(function MapView({ pvUsers, aggregations, warnings, weatherS
         <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png" />
 
         {/* GHI Grid overlay */}
-        <GhiGridOverlay visible={!!showGhiGrid} />
+        <GhiGridOverlay visible={!!showGhiGrid} pvUsers={pvUsers} />
 
         {/* Town boundaries — in GHI grid mode show outline only, no fill, no interaction */}
         {TOWN_POSITIONS.map(town => {

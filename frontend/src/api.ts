@@ -14,6 +14,8 @@ export interface PVUser {
   lat: number
   lon: number
   capacity_kw: number
+  substation_id: string | null
+  feeder_id: string | null
   status: string
 }
 

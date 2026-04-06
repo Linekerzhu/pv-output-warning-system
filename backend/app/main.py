@@ -6,12 +6,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
-from app.api import weather, forecast, warning, pv_users, history
+from app.api import weather, forecast, warning, pv_users, history, satellite
 from app.core.config import settings
 from app.core.database import init_db, close_db
 from app.services.data_collector import DataCollector
+from app.services.satellite_collector import SatelliteCollector
 
 data_collector = DataCollector()
+satellite_collector = SatelliteCollector()
 scheduler = AsyncIOScheduler()
 
 
@@ -37,6 +39,14 @@ async def cleanup_job():
         await data_collector.cleanup_old_data()
     except Exception as e:
         logger.error(f"Cleanup job failed: {e}")
+
+
+async def satellite_job():
+    """Every 10 minutes: download Himawari SWR data."""
+    try:
+        await satellite_collector.collect()
+    except Exception as e:
+        logger.error(f"Satellite job failed: {e}")
 
 
 @asynccontextmanager
@@ -68,8 +78,16 @@ async def lifespan(app: FastAPI):
         id="daily_cleanup",
     )
 
+    # Schedule satellite data collection every 10 minutes
+    scheduler.add_job(
+        satellite_job,
+        "interval",
+        minutes=10,
+        id="satellite_collect",
+    )
+
     scheduler.start()
-    logger.info(f"Scheduler started: hourly every {settings.POLL_INTERVAL_SECONDS}s, daily at 01:00/02:00")
+    logger.info(f"Scheduler started: hourly, 10min satellite, daily at 01:00/02:00")
 
     # Run initial data collection on startup
     try:
@@ -104,6 +122,7 @@ app.include_router(forecast.router, prefix="/api/forecast", tags=["出力预测"
 app.include_router(warning.router, prefix="/api/warning", tags=["预警管理"])
 app.include_router(pv_users.router, prefix="/api/pv-users", tags=["光伏用户"])
 app.include_router(history.router, prefix="/api/history", tags=["历史回测"])
+app.include_router(satellite.router, prefix="/api/satellite", tags=["卫星数据"])
 
 
 @app.get("/")

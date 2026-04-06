@@ -9,7 +9,8 @@
     "capacity_kw": 385.0,
     "status": "运行",
     "substation_id": "SS-haifeng",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-5-6"
   },
   {
     "id": "PV-JS-002",
@@ -21,7 +22,8 @@
     "capacity_kw": 159.0,
     "status": "运行",
     "substation_id": "SS-jinyu",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-7-6"
   },
   {
     "id": "PV-JS-003",
@@ -33,7 +35,8 @@
     "capacity_kw": 399.6,
     "status": "运行",
     "substation_id": "SS-huifeng",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-5-6"
   },
   {
     "id": "PV-JS-004",
@@ -45,7 +48,8 @@
     "capacity_kw": 300.0,
     "status": "运行",
     "substation_id": "SS-jinyu",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-7-6"
   },
   {
     "id": "PV-JS-005",
@@ -57,7 +61,8 @@
     "capacity_kw": 400.0,
     "status": "运行",
     "substation_id": "SS-huifeng",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-5-5"
   },
   {
     "id": "PV-JS-006",
@@ -69,7 +74,8 @@
     "capacity_kw": 220.0,
     "status": "运行",
     "substation_id": "SS-jinyu",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-7-6"
   },
   {
     "id": "PV-JS-007",
@@ -81,7 +87,8 @@
     "capacity_kw": 1400.0,
     "status": "运行",
     "substation_id": "SS-haifeng",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-5-7"
   },
   {
     "id": "PV-JS-008",
@@ -93,7 +100,8 @@
     "capacity_kw": 2200.0,
     "status": "运行",
     "substation_id": "SS-jinyu",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-6-6"
   },
   {
     "id": "PV-JS-009",
@@ -105,7 +113,8 @@
     "capacity_kw": 800.0,
     "status": "运行",
     "substation_id": "SS-huifeng",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-5-5"
   },
   {
     "id": "PV-JS-010",
@@ -117,7 +126,8 @@
     "capacity_kw": 357.5,
     "status": "运行",
     "substation_id": "SS-huifeng",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-5-5"
   },
   {
     "id": "PV-JS-011",
@@ -129,7 +139,8 @@
     "capacity_kw": 2680.1,
     "status": "运行",
     "substation_id": "SS-huifeng",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-5-6"
   },
   {
     "id": "PV-JS-012",
@@ -141,7 +152,8 @@
     "capacity_kw": 207.6,
     "status": "运行",
     "substation_id": "SS-jinzhan",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-6-7"
   },
   {
     "id": "PV-JS-013",
@@ -153,7 +165,8 @@
     "capacity_kw": 216.9,
     "status": "运行",
     "substation_id": "SS-huifeng",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-5-6"
   },
   {
     "id": "PV-JS-014",
@@ -165,7 +178,8 @@
     "capacity_kw": 204.6,
     "status": "停运",
     "substation_id": "SS-puhua",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-7-6"
   },
   {
     "id": "PV-JS-015",
@@ -177,7 +191,8 @@
     "capacity_kw": 200.0,
     "status": "运行",
     "substation_id": "SS-haifeng",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-5-6"
   },
   {
     "id": "PV-JS-016",
@@ -189,7 +204,8 @@
     "capacity_kw": 400.0,
     "status": "运行",
     "substation_id": "SS-dongxian",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-2-3"
   },
   {
     "id": "PV-JS-017",
@@ -201,7 +217,8 @@
     "capacity_kw": 399.3,
     "status": "运行",
     "substation_id": "SS-dongxian",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-1-5"
   },
   {
     "id": "PV-JS-018",
@@ -213,7 +230,8 @@
     "capacity_kw": 229.9,
     "status": "运行",
     "substation_id": "SS-dongxian",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-1-4"
   },
   {
     "id": "PV-JS-019",
@@ -225,7 +243,8 @@
     "capacity_kw": 298.6,
     "status": "停运",
     "substation_id": "SS-dongxian",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-2-5"
   },
   {
     "id": "PV-JS-020",
@@ -237,7 +256,8 @@
     "capacity_kw": 1.0,
     "status": "运行",
     "substation_id": "SS-jinghe",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-2-3"
   },
   {
     "id": "PV-JS-021",
@@ -249,7 +269,8 @@
     "capacity_kw": 400.0,
     "status": "运行",
     "substation_id": "SS-dongxian",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-2-4"
   },
   {
     "id": "PV-JS-022",
@@ -261,7 +282,8 @@
     "capacity_kw": 5.9,
     "status": "运行",
     "substation_id": "SS-dongxian",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-2-3"
   },
   {
     "id": "PV-JS-023",
@@ -273,7 +295,8 @@
     "capacity_kw": 173.2,
     "status": "运行",
     "substation_id": "SS-zhongyi",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-2-5"
   },
   {
     "id": "PV-JS-024",
@@ -285,7 +308,8 @@
     "capacity_kw": 399.0,
     "status": "运行",
     "substation_id": "SS-dongxian",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-2-5"
   },
   {
     "id": "PV-JS-025",
@@ -297,7 +321,8 @@
     "capacity_kw": 6.0,
     "status": "运行",
     "substation_id": "SS-dongxian",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-2-4"
   },
   {
     "id": "PV-JS-026",
@@ -309,7 +334,8 @@
     "capacity_kw": 1056.1,
     "status": "运行",
     "substation_id": "SS-dongxian",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-2-4"
   },
   {
     "id": "PV-JS-027",
@@ -321,7 +347,8 @@
     "capacity_kw": 1.2,
     "status": "运行",
     "substation_id": "SS-zhongyi",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-2-5"
   },
   {
     "id": "PV-JS-028",
@@ -333,7 +360,8 @@
     "capacity_kw": 114.5,
     "status": "运行",
     "substation_id": "SS-zhangyan",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-4-7"
   },
   {
     "id": "PV-JS-029",
@@ -345,7 +373,8 @@
     "capacity_kw": 600.2,
     "status": "运行",
     "substation_id": "SS-zhangyan",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-4-7"
   },
   {
     "id": "PV-JS-030",
@@ -357,7 +386,8 @@
     "capacity_kw": 399.4,
     "status": "运行",
     "substation_id": "SS-tongkai",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-2-6"
   },
   {
     "id": "PV-JS-031",
@@ -369,7 +399,8 @@
     "capacity_kw": 3999.6,
     "status": "运行",
     "substation_id": "SS-haifeng",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-4-7"
   },
   {
     "id": "PV-JS-032",
@@ -381,7 +412,8 @@
     "capacity_kw": 301.4,
     "status": "运行",
     "substation_id": "SS-tongkai",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-3-6"
   },
   {
     "id": "PV-JS-033",
@@ -393,7 +425,8 @@
     "capacity_kw": 399.3,
     "status": "运行",
     "substation_id": "SS-tinglin",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-2-7"
   },
   {
     "id": "PV-JS-034",
@@ -405,7 +438,8 @@
     "capacity_kw": 399.6,
     "status": "运行",
     "substation_id": "SS-tongkai",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-2-6"
   },
   {
     "id": "PV-JS-035",
@@ -417,7 +451,8 @@
     "capacity_kw": 398.0,
     "status": "停运",
     "substation_id": "SS-tongkai",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-2-7"
   },
   {
     "id": "PV-JS-036",
@@ -429,7 +464,8 @@
     "capacity_kw": 0.5,
     "status": "停运",
     "substation_id": "SS-tinglin",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-3-8"
   },
   {
     "id": "PV-JS-037",
@@ -441,7 +477,8 @@
     "capacity_kw": 601.8,
     "status": "停运",
     "substation_id": "SS-tinglin",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-2-8"
   },
   {
     "id": "PV-JS-038",
@@ -453,7 +490,8 @@
     "capacity_kw": 399.0,
     "status": "运行",
     "substation_id": "SS-tinglin",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-1-6"
   },
   {
     "id": "PV-JS-039",
@@ -465,7 +503,8 @@
     "capacity_kw": 78.8,
     "status": "运行",
     "substation_id": "SS-tinglin",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-2-7"
   },
   {
     "id": "PV-JS-040",
@@ -477,7 +516,8 @@
     "capacity_kw": 163.8,
     "status": "运行",
     "substation_id": "SS-jinghe",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-2-1"
   },
   {
     "id": "PV-JS-041",
@@ -489,7 +529,8 @@
     "capacity_kw": 799.1,
     "status": "运行",
     "substation_id": "SS-jinghe",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-3-1"
   },
   {
     "id": "PV-JS-042",
@@ -501,7 +542,8 @@
     "capacity_kw": 2099.0,
     "status": "运行",
     "substation_id": "SS-jinghe",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-3-1"
   },
   {
     "id": "PV-JS-043",
@@ -513,7 +555,8 @@
     "capacity_kw": 1564.9,
     "status": "运行",
     "substation_id": "SS-jinghe",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-2-2"
   },
   {
     "id": "PV-JS-044",
@@ -525,7 +568,8 @@
     "capacity_kw": 1140.5,
     "status": "运行",
     "substation_id": "SS-jinghe",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-1-0"
   },
   {
     "id": "PV-JS-045",
@@ -537,7 +581,8 @@
     "capacity_kw": 2311.1,
     "status": "运行",
     "substation_id": "SS-jinghe",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-3-2"
   },
   {
     "id": "PV-JS-046",
@@ -549,7 +594,8 @@
     "capacity_kw": 400.0,
     "status": "停运",
     "substation_id": "SS-jinghe",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-3-1"
   },
   {
     "id": "PV-JS-047",
@@ -561,7 +607,8 @@
     "capacity_kw": 294.6,
     "status": "停运",
     "substation_id": "SS-jinghe",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-2-2"
   },
   {
     "id": "PV-JS-048",
@@ -573,7 +620,8 @@
     "capacity_kw": 916.9,
     "status": "运行",
     "substation_id": "SS-jinghe",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-2-3"
   },
   {
     "id": "PV-JS-049",
@@ -585,7 +633,8 @@
     "capacity_kw": 399.9,
     "status": "运行",
     "substation_id": "SS-jinghe",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-3-1"
   },
   {
     "id": "PV-JS-050",
@@ -597,7 +646,8 @@
     "capacity_kw": 250.0,
     "status": "运行",
     "substation_id": "SS-shanyang",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-5-8"
   },
   {
     "id": "PV-JS-051",
@@ -609,7 +659,8 @@
     "capacity_kw": 5.9,
     "status": "运行",
     "substation_id": "SS-shanyang",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-5-7"
   },
   {
     "id": "PV-JS-052",
@@ -621,7 +672,8 @@
     "capacity_kw": 3413.2,
     "status": "运行",
     "substation_id": "SS-shanyang",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-6-8"
   },
   {
     "id": "PV-JS-053",
@@ -633,7 +685,8 @@
     "capacity_kw": 1972.2,
     "status": "运行",
     "substation_id": "SS-shanyang",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-5-7"
   },
   {
     "id": "PV-JS-054",
@@ -645,7 +698,8 @@
     "capacity_kw": 2999.9,
     "status": "停运",
     "substation_id": "SS-shanyang",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-6-9"
   },
   {
     "id": "PV-JS-055",
@@ -657,7 +711,8 @@
     "capacity_kw": 4799.9,
     "status": "运行",
     "substation_id": "SS-nanyangwan",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-6-8"
   },
   {
     "id": "PV-JS-056",
@@ -669,7 +724,8 @@
     "capacity_kw": 5999.8,
     "status": "运行",
     "substation_id": "SS-nanyangwan",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-6-7"
   },
   {
     "id": "PV-JS-057",
@@ -681,7 +737,8 @@
     "capacity_kw": 5999.8,
     "status": "运行",
     "substation_id": "SS-shanyang",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-6-8"
   },
   {
     "id": "PV-JS-058",
@@ -693,7 +750,8 @@
     "capacity_kw": 210.0,
     "status": "运行",
     "substation_id": "SS-shanyang",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-5-7"
   },
   {
     "id": "PV-JS-059",
@@ -705,7 +763,8 @@
     "capacity_kw": 81.2,
     "status": "运行",
     "substation_id": "SS-nanyangwan",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-6-8"
   },
   {
     "id": "PV-JS-060",
@@ -717,7 +776,8 @@
     "capacity_kw": 193.1,
     "status": "运行",
     "substation_id": "SS-langping",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-3-4"
   },
   {
     "id": "PV-JS-061",
@@ -729,7 +789,8 @@
     "capacity_kw": 0.4,
     "status": "运行",
     "substation_id": "SS-tongkai",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-3-6"
   },
   {
     "id": "PV-JS-062",
@@ -741,7 +802,8 @@
     "capacity_kw": 2785.2,
     "status": "运行",
     "substation_id": "SS-zhongyi",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-3-5"
   },
   {
     "id": "PV-JS-063",
@@ -753,7 +815,8 @@
     "capacity_kw": 1520.8,
     "status": "运行",
     "substation_id": "SS-zhongyi",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-3-5"
   },
   {
     "id": "PV-JS-064",
@@ -765,7 +828,8 @@
     "capacity_kw": 542.2,
     "status": "运行",
     "substation_id": "SS-zhongyi",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-3-5"
   },
   {
     "id": "PV-JS-065",
@@ -777,7 +841,8 @@
     "capacity_kw": 341.9,
     "status": "运行",
     "substation_id": "SS-zhongyi",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-3-6"
   },
   {
     "id": "PV-JS-066",
@@ -789,7 +854,8 @@
     "capacity_kw": 1000.0,
     "status": "运行",
     "substation_id": "SS-dongxian",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-3-3"
   },
   {
     "id": "PV-JS-067",
@@ -801,7 +867,8 @@
     "capacity_kw": 592.5,
     "status": "运行",
     "substation_id": "SS-zhongyi",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-4-6"
   },
   {
     "id": "PV-JS-068",
@@ -813,7 +880,8 @@
     "capacity_kw": 399.6,
     "status": "运行",
     "substation_id": "SS-langping",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-3-3"
   },
   {
     "id": "PV-JS-069",
@@ -825,7 +893,8 @@
     "capacity_kw": 234.0,
     "status": "运行",
     "substation_id": "SS-zhongyi",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-4-6"
   },
   {
     "id": "PV-JS-070",
@@ -837,7 +906,8 @@
     "capacity_kw": 2103.9,
     "status": "运行",
     "substation_id": "SS-caojing",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-4-10"
   },
   {
     "id": "PV-JS-071",
@@ -849,7 +919,8 @@
     "capacity_kw": 2.0,
     "status": "运行",
     "substation_id": "SS-caojing",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-4-9"
   },
   {
     "id": "PV-JS-072",
@@ -861,7 +932,8 @@
     "capacity_kw": 399.6,
     "status": "运行",
     "substation_id": "SS-caojing",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-4-10"
   },
   {
     "id": "PV-JS-073",
@@ -873,7 +945,8 @@
     "capacity_kw": 1997.8,
     "status": "运行",
     "substation_id": "SS-caojing",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-5-9"
   },
   {
     "id": "PV-JS-074",
@@ -885,7 +958,8 @@
     "capacity_kw": 198.9,
     "status": "运行",
     "substation_id": "SS-caojing",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-4-10"
   },
   {
     "id": "PV-JS-075",
@@ -897,7 +971,8 @@
     "capacity_kw": 199.5,
     "status": "运行",
     "substation_id": "SS-caojing",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-4-9"
   },
   {
     "id": "PV-JS-076",
@@ -909,7 +984,8 @@
     "capacity_kw": 399.6,
     "status": "运行",
     "substation_id": "SS-caojing",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-4-9"
   },
   {
     "id": "PV-JS-077",
@@ -921,7 +997,8 @@
     "capacity_kw": 2173.3,
     "status": "运行",
     "substation_id": "SS-caojing",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-4-9"
   },
   {
     "id": "PV-JS-078",
@@ -933,7 +1010,8 @@
     "capacity_kw": 400.0,
     "status": "运行",
     "substation_id": "SS-langping",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-5-4"
   },
   {
     "id": "PV-JS-079",
@@ -945,7 +1023,8 @@
     "capacity_kw": 799.2,
     "status": "运行",
     "substation_id": "SS-langping",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-4-4"
   },
   {
     "id": "PV-JS-080",
@@ -957,7 +1036,8 @@
     "capacity_kw": 399.6,
     "status": "停运",
     "substation_id": "SS-langping",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-5-4"
   },
   {
     "id": "PV-JS-081",
@@ -969,7 +1049,8 @@
     "capacity_kw": 399.6,
     "status": "停运",
     "substation_id": "SS-langping",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-4-4"
   },
   {
     "id": "PV-JS-082",
@@ -981,7 +1062,8 @@
     "capacity_kw": 1316.2,
     "status": "运行",
     "substation_id": "SS-langping",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-4-4"
   },
   {
     "id": "PV-JS-083",
@@ -993,7 +1075,8 @@
     "capacity_kw": 1813.1,
     "status": "运行",
     "substation_id": "SS-langping",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-4-5"
   },
   {
     "id": "PV-JS-084",
@@ -1005,7 +1088,8 @@
     "capacity_kw": 133.4,
     "status": "运行",
     "substation_id": "SS-langping",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-4-5"
   },
   {
     "id": "PV-JS-085",
@@ -1017,7 +1101,8 @@
     "capacity_kw": 601.3,
     "status": "停运",
     "substation_id": "SS-zhongyi",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-4-5"
   },
   {
     "id": "PV-JS-086",
@@ -1029,7 +1114,8 @@
     "capacity_kw": 997.1,
     "status": "运行",
     "substation_id": "SS-haifeng",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-5-7"
   },
   {
     "id": "PV-JS-087",
@@ -1041,7 +1127,8 @@
     "capacity_kw": 288.5,
     "status": "运行",
     "substation_id": "SS-zhangyan",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-4-6"
   },
   {
     "id": "PV-JS-088",
@@ -1053,7 +1140,8 @@
     "capacity_kw": 740.8,
     "status": "运行",
     "substation_id": "SS-zhangyan",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-4-6"
   },
   {
     "id": "PV-JS-089",
@@ -1065,7 +1153,8 @@
     "capacity_kw": 1592.6,
     "status": "运行",
     "substation_id": "SS-zhangyan",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-4-7"
   },
   {
     "id": "PV-JS-090",
@@ -1077,7 +1166,8 @@
     "capacity_kw": 990.0,
     "status": "运行",
     "substation_id": "SS-zhangyan",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-4-6"
   },
   {
     "id": "PV-JS-091",
@@ -1089,7 +1179,8 @@
     "capacity_kw": 1200.0,
     "status": "运行",
     "substation_id": "SS-zhangyan",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-4-6"
   },
   {
     "id": "PV-JS-092",
@@ -1101,7 +1192,8 @@
     "capacity_kw": 139.2,
     "status": "运行",
     "substation_id": "SS-haifeng",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-5-6"
   },
   {
     "id": "PV-JS-093",
@@ -1113,7 +1205,8 @@
     "capacity_kw": 759.9,
     "status": "运行",
     "substation_id": "SS-zhangyan",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-4-6"
   },
   {
     "id": "PV-JS-094",
@@ -1125,7 +1218,8 @@
     "capacity_kw": 398.9,
     "status": "运行",
     "substation_id": "SS-puhua",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-7-7"
   },
   {
     "id": "PV-JS-095",
@@ -1137,7 +1231,8 @@
     "capacity_kw": 80.0,
     "status": "运行",
     "substation_id": "SS-puhua",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-7-7"
   },
   {
     "id": "PV-JS-096",
@@ -1149,7 +1244,8 @@
     "capacity_kw": 1000.4,
     "status": "运行",
     "substation_id": "SS-nanyangwan",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-7-7"
   },
   {
     "id": "PV-JS-097",
@@ -1161,7 +1257,8 @@
     "capacity_kw": 880.0,
     "status": "运行",
     "substation_id": "SS-puhua",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-7-7"
   },
   {
     "id": "PV-JS-098",
@@ -1173,7 +1270,8 @@
     "capacity_kw": 150.0,
     "status": "运行",
     "substation_id": "SS-puhua",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-7-6"
   },
   {
     "id": "PV-JS-099",
@@ -1185,7 +1283,8 @@
     "capacity_kw": 1200.0,
     "status": "运行",
     "substation_id": "SS-nanyangwan",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-7-7"
   },
   {
     "id": "PV-JS-100",
@@ -1197,6 +1296,7 @@
     "capacity_kw": 400.0,
     "status": "运行",
     "substation_id": "SS-puhua",
-    "feeder_id": null
+    "feeder_id": null,
+    "grid_id": "H-7-6"
   }
 ]
