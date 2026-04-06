@@ -212,6 +212,7 @@ export default memo(function MapView({ pvUsers, aggregations, warnings, weatherS
         style={{ height: '100%', width: '100%' }}
         zoomControl={false}
         attributionControl={false}
+        preferCanvas
       >
         <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png" />
 

@@ -210,12 +210,11 @@ export default function App() {
                   <div className="flex-1 overflow-y-auto px-4 pb-4">
                     <div style={{ fontFamily: 'var(--font-data)', fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.8 }}>
                       <p style={{ marginBottom: 12 }}>
-                        GHI空间网格：<strong style={{ color: 'var(--text-bright)' }}>48格</strong>（~3.5km精度）
+                        GHI空间网格：<strong style={{ color: 'var(--text-bright)' }}>51格</strong>（~2.7km精度）
                       </p>
                       <p style={{ color: 'var(--text-muted)', fontSize: 10 }}>
-                        地图上的网格显示各区域太阳辐照度(GHI)分布。
+                        地图上的蜂窝网格显示各区域太阳辐照度(GHI)空间分布。
                         颜色越暖表示GHI越高，光伏出力越大。
-                        后续将接入实时GHI数据和变电站拓扑。
                       </p>
                     </div>
                   </div>

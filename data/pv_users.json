@@ -7,7 +7,9 @@
     "lat": 30.767625,
     "lon": 121.294961,
     "capacity_kw": 385.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-haifeng",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-002",
@@ -17,7 +19,9 @@
     "lat": 30.722616,
     "lon": 121.286527,
     "capacity_kw": 159.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-jinyu",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-003",
@@ -27,7 +31,9 @@
     "lat": 30.764486,
     "lon": 121.265915,
     "capacity_kw": 399.6,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-huifeng",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-004",
@@ -37,7 +43,9 @@
     "lat": 30.716094,
     "lon": 121.266264,
     "capacity_kw": 300.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-jinyu",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-005",
@@ -47,7 +55,9 @@
     "lat": 30.77004,
     "lon": 121.230077,
     "capacity_kw": 400.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-huifeng",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-006",
@@ -57,7 +67,9 @@
     "lat": 30.705712,
     "lon": 121.270422,
     "capacity_kw": 220.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-jinyu",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-007",
@@ -67,7 +79,9 @@
     "lat": 30.757992,
     "lon": 121.318538,
     "capacity_kw": 1400.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-haifeng",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-008",
@@ -77,7 +91,9 @@
     "lat": 30.73579,
     "lon": 121.269742,
     "capacity_kw": 2200.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-jinyu",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-009",
@@ -87,7 +103,9 @@
     "lat": 30.756249,
     "lon": 121.237862,
     "capacity_kw": 800.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-huifeng",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-010",
@@ -97,7 +115,9 @@
     "lat": 30.76331,
     "lon": 121.243337,
     "capacity_kw": 357.5,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-huifeng",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-011",
@@ -107,7 +127,9 @@
     "lat": 30.773752,
     "lon": 121.263842,
     "capacity_kw": 2680.1,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-huifeng",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-012",
@@ -117,7 +139,9 @@
     "lat": 30.752501,
     "lon": 121.299616,
     "capacity_kw": 207.6,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-jinzhan",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-013",
@@ -127,7 +151,9 @@
     "lat": 30.768386,
     "lon": 121.279407,
     "capacity_kw": 216.9,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-huifeng",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-014",
@@ -137,7 +163,9 @@
     "lat": 30.711627,
     "lon": 121.289398,
     "capacity_kw": 204.6,
-    "status": "停运"
+    "status": "停运",
+    "substation_id": "SS-puhua",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-015",
@@ -147,7 +175,9 @@
     "lat": 30.766218,
     "lon": 121.295527,
     "capacity_kw": 200.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-haifeng",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-016",
@@ -157,7 +187,9 @@
     "lat": 30.902165,
     "lon": 121.119652,
     "capacity_kw": 400.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-dongxian",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-017",
@@ -167,7 +199,9 @@
     "lat": 30.928377,
     "lon": 121.219672,
     "capacity_kw": 399.3,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-dongxian",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-018",
@@ -177,7 +211,9 @@
     "lat": 30.901996,
     "lon": 121.184746,
     "capacity_kw": 229.9,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-dongxian",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-019",
@@ -187,7 +223,9 @@
     "lat": 30.893654,
     "lon": 121.206948,
     "capacity_kw": 298.6,
-    "status": "停运"
+    "status": "停运",
+    "substation_id": "SS-dongxian",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-020",
@@ -197,7 +235,9 @@
     "lat": 30.875622,
     "lon": 121.107602,
     "capacity_kw": 1.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-jinghe",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-021",
@@ -207,7 +247,9 @@
     "lat": 30.868644,
     "lon": 121.1793,
     "capacity_kw": 400.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-dongxian",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-022",
@@ -217,7 +259,9 @@
     "lat": 30.893095,
     "lon": 121.121511,
     "capacity_kw": 5.9,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-dongxian",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-023",
@@ -227,7 +271,9 @@
     "lat": 30.87067,
     "lon": 121.219224,
     "capacity_kw": 173.2,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-zhongyi",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-024",
@@ -237,7 +283,9 @@
     "lat": 30.893647,
     "lon": 121.200576,
     "capacity_kw": 399.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-dongxian",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-025",
@@ -247,7 +295,9 @@
     "lat": 30.885168,
     "lon": 121.172786,
     "capacity_kw": 6.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-dongxian",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-026",
@@ -257,7 +307,9 @@
     "lat": 30.876789,
     "lon": 121.182042,
     "capacity_kw": 1056.1,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-dongxian",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-027",
@@ -267,7 +319,9 @@
     "lat": 30.867644,
     "lon": 121.223541,
     "capacity_kw": 1.2,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-zhongyi",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-028",
@@ -277,7 +331,9 @@
     "lat": 30.831281,
     "lon": 121.302748,
     "capacity_kw": 114.5,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-zhangyan",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-029",
@@ -287,7 +343,9 @@
     "lat": 30.826433,
     "lon": 121.300781,
     "capacity_kw": 600.2,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-zhangyan",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-030",
@@ -297,7 +355,9 @@
     "lat": 30.883277,
     "lon": 121.282017,
     "capacity_kw": 399.4,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-tongkai",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-031",
@@ -307,7 +367,9 @@
     "lat": 30.80063,
     "lon": 121.329318,
     "capacity_kw": 3999.6,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-haifeng",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-032",
@@ -317,7 +379,9 @@
     "lat": 30.85453,
     "lon": 121.292703,
     "capacity_kw": 301.4,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-tongkai",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-033",
@@ -327,7 +391,9 @@
     "lat": 30.90037,
     "lon": 121.297941,
     "capacity_kw": 399.3,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-tinglin",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-034",
@@ -337,7 +403,9 @@
     "lat": 30.891398,
     "lon": 121.250474,
     "capacity_kw": 399.6,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-tongkai",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-035",
@@ -347,7 +415,9 @@
     "lat": 30.872372,
     "lon": 121.311726,
     "capacity_kw": 398.0,
-    "status": "停运"
+    "status": "停运",
+    "substation_id": "SS-tongkai",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-036",
@@ -357,7 +427,9 @@
     "lat": 30.85838,
     "lon": 121.371365,
     "capacity_kw": 0.5,
-    "status": "停运"
+    "status": "停运",
+    "substation_id": "SS-tinglin",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-037",
@@ -367,7 +439,9 @@
     "lat": 30.862622,
     "lon": 121.360606,
     "capacity_kw": 601.8,
-    "status": "停运"
+    "status": "停运",
+    "substation_id": "SS-tinglin",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-038",
@@ -377,7 +451,9 @@
     "lat": 30.910995,
     "lon": 121.28984,
     "capacity_kw": 399.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-tinglin",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-039",
@@ -387,7 +463,9 @@
     "lat": 30.883057,
     "lon": 121.315368,
     "capacity_kw": 78.8,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-tinglin",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-040",
@@ -397,7 +475,9 @@
     "lat": 30.893255,
     "lon": 121.001281,
     "capacity_kw": 163.8,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-jinghe",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-041",
@@ -407,7 +487,9 @@
     "lat": 30.833681,
     "lon": 121.035341,
     "capacity_kw": 799.1,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-jinghe",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-042",
@@ -417,7 +499,9 @@
     "lat": 30.854787,
     "lon": 121.047538,
     "capacity_kw": 2099.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-jinghe",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-043",
@@ -427,7 +511,9 @@
     "lat": 30.888543,
     "lon": 121.078953,
     "capacity_kw": 1564.9,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-jinghe",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-044",
@@ -437,7 +523,9 @@
     "lat": 30.918082,
     "lon": 121.008867,
     "capacity_kw": 1140.5,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-jinghe",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-045",
@@ -447,7 +535,9 @@
     "lat": 30.862798,
     "lon": 121.081638,
     "capacity_kw": 2311.1,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-jinghe",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-046",
@@ -457,7 +547,9 @@
     "lat": 30.828125,
     "lon": 121.04554,
     "capacity_kw": 400.0,
-    "status": "停运"
+    "status": "停运",
+    "substation_id": "SS-jinghe",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-047",
@@ -467,7 +559,9 @@
     "lat": 30.891689,
     "lon": 121.046103,
     "capacity_kw": 294.6,
-    "status": "停运"
+    "status": "停运",
+    "substation_id": "SS-jinghe",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-048",
@@ -477,7 +571,9 @@
     "lat": 30.890847,
     "lon": 121.101757,
     "capacity_kw": 916.9,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-jinghe",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-049",
@@ -487,7 +583,9 @@
     "lat": 30.832988,
     "lon": 121.029768,
     "capacity_kw": 399.9,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-jinghe",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-050",
@@ -497,7 +595,9 @@
     "lat": 30.774465,
     "lon": 121.376096,
     "capacity_kw": 250.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-shanyang",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-051",
@@ -507,7 +607,9 @@
     "lat": 30.786081,
     "lon": 121.336798,
     "capacity_kw": 5.9,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-shanyang",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-052",
@@ -517,7 +619,9 @@
     "lat": 30.74781,
     "lon": 121.376334,
     "capacity_kw": 3413.2,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-shanyang",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-053",
@@ -527,7 +631,9 @@
     "lat": 30.776359,
     "lon": 121.353282,
     "capacity_kw": 1972.2,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-shanyang",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-054",
@@ -537,7 +643,9 @@
     "lat": 30.741692,
     "lon": 121.388417,
     "capacity_kw": 2999.9,
-    "status": "停运"
+    "status": "停运",
+    "substation_id": "SS-shanyang",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-055",
@@ -547,7 +655,9 @@
     "lat": 30.734738,
     "lon": 121.374054,
     "capacity_kw": 4799.9,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-nanyangwan",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-056",
@@ -557,7 +667,9 @@
     "lat": 30.733391,
     "lon": 121.331291,
     "capacity_kw": 5999.8,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-nanyangwan",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-057",
@@ -567,7 +679,9 @@
     "lat": 30.738144,
     "lon": 121.371224,
     "capacity_kw": 5999.8,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-shanyang",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-058",
@@ -577,7 +691,9 @@
     "lat": 30.764066,
     "lon": 121.343029,
     "capacity_kw": 210.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-shanyang",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-059",
@@ -587,7 +703,9 @@
     "lat": 30.726644,
     "lon": 121.357193,
     "capacity_kw": 81.2,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-nanyangwan",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-060",
@@ -597,7 +715,9 @@
     "lat": 30.828583,
     "lon": 121.188865,
     "capacity_kw": 193.1,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-langping",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-061",
@@ -607,7 +727,9 @@
     "lat": 30.849679,
     "lon": 121.27876,
     "capacity_kw": 0.4,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-tongkai",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-062",
@@ -617,7 +739,9 @@
     "lat": 30.842044,
     "lon": 121.23419,
     "capacity_kw": 2785.2,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-zhongyi",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-063",
@@ -627,7 +751,9 @@
     "lat": 30.836981,
     "lon": 121.23028,
     "capacity_kw": 1520.8,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-zhongyi",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-064",
@@ -637,7 +763,9 @@
     "lat": 30.85547,
     "lon": 121.23744,
     "capacity_kw": 542.2,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-zhongyi",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-065",
@@ -647,7 +775,9 @@
     "lat": 30.833819,
     "lon": 121.269227,
     "capacity_kw": 341.9,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-zhongyi",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-066",
@@ -657,7 +787,9 @@
     "lat": 30.845949,
     "lon": 121.151505,
     "capacity_kw": 1000.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-dongxian",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-067",
@@ -667,7 +799,9 @@
     "lat": 30.808123,
     "lon": 121.240104,
     "capacity_kw": 592.5,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-zhongyi",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-068",
@@ -677,7 +811,9 @@
     "lat": 30.837178,
     "lon": 121.125597,
     "capacity_kw": 399.6,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-langping",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-069",
@@ -687,7 +823,9 @@
     "lat": 30.832354,
     "lon": 121.260546,
     "capacity_kw": 234.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-zhongyi",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-070",
@@ -697,7 +835,9 @@
     "lat": 30.808662,
     "lon": 121.430458,
     "capacity_kw": 2103.9,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-caojing",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-071",
@@ -707,7 +847,9 @@
     "lat": 30.820964,
     "lon": 121.403149,
     "capacity_kw": 2.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-caojing",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-072",
@@ -717,7 +859,9 @@
     "lat": 30.81101,
     "lon": 121.435654,
     "capacity_kw": 399.6,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-caojing",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-073",
@@ -727,7 +871,9 @@
     "lat": 30.781151,
     "lon": 121.410459,
     "capacity_kw": 1997.8,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-caojing",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-074",
@@ -737,7 +883,9 @@
     "lat": 30.816296,
     "lon": 121.429023,
     "capacity_kw": 198.9,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-caojing",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-075",
@@ -747,7 +895,9 @@
     "lat": 30.802084,
     "lon": 121.396573,
     "capacity_kw": 199.5,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-caojing",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-076",
@@ -757,7 +907,9 @@
     "lat": 30.823025,
     "lon": 121.392621,
     "capacity_kw": 399.6,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-caojing",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-077",
@@ -767,7 +919,9 @@
     "lat": 30.821327,
     "lon": 121.411127,
     "capacity_kw": 2173.3,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-caojing",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-078",
@@ -777,7 +931,9 @@
     "lat": 30.785525,
     "lon": 121.180449,
     "capacity_kw": 400.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-langping",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-079",
@@ -787,7 +943,9 @@
     "lat": 30.810912,
     "lon": 121.176418,
     "capacity_kw": 799.2,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-langping",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-080",
@@ -797,7 +955,9 @@
     "lat": 30.774897,
     "lon": 121.175101,
     "capacity_kw": 399.6,
-    "status": "停运"
+    "status": "停运",
+    "substation_id": "SS-langping",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-081",
@@ -807,7 +967,9 @@
     "lat": 30.808902,
     "lon": 121.14206,
     "capacity_kw": 399.6,
-    "status": "停运"
+    "status": "停运",
+    "substation_id": "SS-langping",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-082",
@@ -817,7 +979,9 @@
     "lat": 30.794343,
     "lon": 121.151776,
     "capacity_kw": 1316.2,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-langping",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-083",
@@ -827,7 +991,9 @@
     "lat": 30.794344,
     "lon": 121.220889,
     "capacity_kw": 1813.1,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-langping",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-084",
@@ -837,7 +1003,9 @@
     "lat": 30.79938,
     "lon": 121.220507,
     "capacity_kw": 133.4,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-langping",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-085",
@@ -847,7 +1015,9 @@
     "lat": 30.809311,
     "lon": 121.224627,
     "capacity_kw": 601.3,
-    "status": "停运"
+    "status": "停运",
+    "substation_id": "SS-zhongyi",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-086",
@@ -857,7 +1027,9 @@
     "lat": 30.783189,
     "lon": 121.315161,
     "capacity_kw": 997.1,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-haifeng",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-087",
@@ -867,7 +1039,9 @@
     "lat": 30.797626,
     "lon": 121.251921,
     "capacity_kw": 288.5,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-zhangyan",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-088",
@@ -877,7 +1051,9 @@
     "lat": 30.816342,
     "lon": 121.25658,
     "capacity_kw": 740.8,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-zhangyan",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-089",
@@ -887,7 +1063,9 @@
     "lat": 30.792719,
     "lon": 121.304324,
     "capacity_kw": 1592.6,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-zhangyan",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-090",
@@ -897,7 +1075,9 @@
     "lat": 30.807432,
     "lon": 121.250831,
     "capacity_kw": 990.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-zhangyan",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-091",
@@ -907,7 +1087,9 @@
     "lat": 30.80352,
     "lon": 121.245523,
     "capacity_kw": 1200.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-zhangyan",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-092",
@@ -917,7 +1099,9 @@
     "lat": 30.771811,
     "lon": 121.298437,
     "capacity_kw": 139.2,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-haifeng",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-093",
@@ -927,7 +1111,9 @@
     "lat": 30.798688,
     "lon": 121.279764,
     "capacity_kw": 759.9,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-zhangyan",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-094",
@@ -937,7 +1123,9 @@
     "lat": 30.698351,
     "lon": 121.313574,
     "capacity_kw": 398.9,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-puhua",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-095",
@@ -947,7 +1135,9 @@
     "lat": 30.715348,
     "lon": 121.310305,
     "capacity_kw": 80.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-puhua",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-096",
@@ -957,7 +1147,9 @@
     "lat": 30.702682,
     "lon": 121.341781,
     "capacity_kw": 1000.4,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-nanyangwan",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-097",
@@ -967,7 +1159,9 @@
     "lat": 30.701531,
     "lon": 121.308698,
     "capacity_kw": 880.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-puhua",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-098",
@@ -977,7 +1171,9 @@
     "lat": 30.698619,
     "lon": 121.287106,
     "capacity_kw": 150.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-puhua",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-099",
@@ -987,7 +1183,9 @@
     "lat": 30.718071,
     "lon": 121.344208,
     "capacity_kw": 1200.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-nanyangwan",
+    "feeder_id": null
   },
   {
     "id": "PV-JS-100",
@@ -997,6 +1195,8 @@
     "lat": 30.699051,
     "lon": 121.289606,
     "capacity_kw": 400.0,
-    "status": "运行"
+    "status": "运行",
+    "substation_id": "SS-puhua",
+    "feeder_id": null
   }
 ]

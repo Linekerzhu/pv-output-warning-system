@@ -1,36 +1,26 @@
-import { memo, useMemo } from 'react'
-import { Polygon, Tooltip } from 'react-leaflet'
+import { memo, useEffect, useRef, useMemo, useState } from 'react'
+import { useMap } from 'react-leaflet'
+import L from 'leaflet'
 import { GHI_GRID, HEX_S_LAT, HEX_S_LON } from '../data/ghi-grid'
+import { SUBSTATIONS } from '../data/substations'
 
 interface Props {
   visible: boolean
 }
 
-// Precompute half-width (used in every vertex calc)
-const HALF_W = HEX_S_LON * Math.sqrt(3) / 2  // ≈ col_spacing / 2
+const HALF_W = HEX_S_LON * Math.sqrt(3) / 2
 
-/**
- * Pointy-top hexagon vertices — tessellates perfectly with the grid layout.
- *
- *       /\
- *      /  \
- *     /    \
- *     \    /
- *      \  /
- *       \/
- */
-function hexVertices(lat: number, lon: number): [number, number][] {
+function hexVertices(lat: number, lon: number): L.LatLngExpression[] {
   return [
-    [lat + HEX_S_LAT, lon],                 // top
-    [lat + HEX_S_LAT / 2, lon + HALF_W],    // upper-right
-    [lat - HEX_S_LAT / 2, lon + HALF_W],    // lower-right
-    [lat - HEX_S_LAT, lon],                 // bottom
-    [lat - HEX_S_LAT / 2, lon - HALF_W],    // lower-left
-    [lat + HEX_S_LAT / 2, lon - HALF_W],    // upper-left
+    [lat + HEX_S_LAT, lon],
+    [lat + HEX_S_LAT / 2, lon + HALF_W],
+    [lat - HEX_S_LAT / 2, lon + HALF_W],
+    [lat - HEX_S_LAT, lon],
+    [lat - HEX_S_LAT / 2, lon - HALF_W],
+    [lat + HEX_S_LAT / 2, lon - HALF_W],
   ]
 }
 
-/** GHI → color: 0=cool blue → 500=green-yellow → 1000=warm orange */
 function ghiColor(ghi: number): string {
   if (ghi <= 0) return 'rgb(25,35,80)'
   const t = Math.min(1, ghi / 1000)
@@ -46,65 +36,166 @@ function ghiColor(ghi: number): string {
   return `rgb(${Math.round(215 + 40 * s)}, ${Math.round(200 - 100 * s)}, ${Math.round(40 - 20 * s)})`
 }
 
-/** Mock GHI with time-of-day and spatial variation */
-function mockGhi(lat: number, lon: number): number {
+function computeMockGhi(): Map<string, number> {
   const now = new Date()
   const hour = now.getHours() + now.getMinutes() / 60
-  if (hour < 5.5 || hour > 19.5) return 0
-  const hourFactor = Math.max(0, Math.sin((hour - 5.5) / 14 * Math.PI))
-  const spatial = Math.sin(lat * 137.5) * 60 + Math.cos(lon * 89.3) * 40
-  return Math.round(Math.max(0, (820 + spatial) * hourFactor))
+  const m = new Map<string, number>()
+  for (const cell of GHI_GRID) {
+    let ghi = 0
+    if (hour >= 5.5 && hour <= 19.5) {
+      const hourFactor = Math.max(0, Math.sin((hour - 5.5) / 14 * Math.PI))
+      const spatial = Math.sin(cell.lat * 137.5) * 60 + Math.cos(cell.lon * 89.3) * 40
+      ghi = Math.round(Math.max(0, (820 + spatial) * hourFactor))
+    }
+    m.set(cell.id, ghi)
+  }
+  return m
 }
 
+// Precompute hex vertices (static, never changes)
+const HEX_VERTICES = GHI_GRID.map(cell => ({
+  id: cell.id,
+  lat: cell.lat,
+  lon: cell.lon,
+  vertices: hexVertices(cell.lat, cell.lon),
+}))
+
 export default memo(function GhiGridOverlay({ visible }: Props) {
-  const cells = useMemo(() => {
-    if (!visible) return []
-    return GHI_GRID.map(cell => ({
-      ...cell,
-      vertices: hexVertices(cell.lat, cell.lon),
-      ghi: mockGhi(cell.lat, cell.lon),
-    }))
+  const map = useMap()
+  const groupRef = useRef<L.LayerGroup | null>(null)
+  const polysRef = useRef<Map<string, L.Polygon>>(new Map())
+  const tooltipRef = useRef<L.Tooltip | null>(null)
+  const ghiRef = useRef<Map<string, number>>(new Map())
+  const builtRef = useRef(false)
+  const [tick, setTick] = useState(0)
+
+  // Refresh mock GHI every 30 seconds
+  useEffect(() => {
+    if (!visible) return
+    const timer = setInterval(() => setTick(t => t + 1), 30_000)
+    return () => clearInterval(timer)
   }, [visible])
 
-  if (!visible) return null
+  // Compute GHI and keep ref current (fixes stale closure)
+  const ghiValues = useMemo(() => computeMockGhi(), [tick, visible])
+  ghiRef.current = ghiValues
 
-  return (
-    <>
-      {cells.map(cell => (
-        <Polygon
-          key={cell.id}
-          positions={cell.vertices}
-          pathOptions={{
-            color: 'rgba(219,161,74,0.15)',
-            weight: 0.5,
-            fillColor: ghiColor(cell.ghi),
-            fillOpacity: 0.35,
-          }}
-          interactive={true}
-          bubblingMouseEvents={false}
-        >
-          <Tooltip direction="top" sticky>
-            <div style={{
-              fontFamily: 'Fira Code, monospace',
-              fontSize: 11,
-              color: '#f0ede6',
-              background: 'rgba(14,15,21,0.92)',
-              padding: '6px 10px',
-              borderRadius: 6,
-              border: '1px solid rgba(219,161,74,0.2)',
-            }}>
-              <div style={{ fontSize: 10, color: '#78746b', marginBottom: 2 }}>{cell.id}</div>
-              <div style={{ fontSize: 13, fontWeight: 600 }}>
-                GHI{' '}
-                <span style={{ color: cell.ghi > 500 ? '#dba14a' : cell.ghi > 0 ? '#6ec472' : '#78746b' }}>
-                  {cell.ghi}
-                </span>{' '}
-                W/m²
-              </div>
-            </div>
-          </Tooltip>
-        </Polygon>
-      ))}
-    </>
-  )
+  // Build layer group ONCE, then show/hide — never destroy/recreate
+  useEffect(() => {
+    if (builtRef.current) return // already built
+
+    const group = L.layerGroup()
+    groupRef.current = group
+    const polys = new Map<string, L.Polygon>()
+
+    for (const hex of HEX_VERTICES) {
+      const ghi = ghiRef.current.get(hex.id) ?? 0
+      const poly = L.polygon(hex.vertices, {
+        color: 'rgba(219,161,74,0.15)',
+        weight: 0.5,
+        fillColor: ghiColor(ghi),
+        fillOpacity: 0.35,
+        bubblingMouseEvents: false,
+      })
+
+      poly.on('mouseover', () => {
+        poly.setStyle({ color: '#dba14a', weight: 1.5, fillOpacity: 0.55 })
+        if (tooltipRef.current) map.closeTooltip(tooltipRef.current)
+
+        const currentGhi = ghiRef.current.get(hex.id) ?? 0
+        const colorStr = currentGhi > 500 ? '#dba14a' : currentGhi > 0 ? '#6ec472' : '#78746b'
+        tooltipRef.current = L.tooltip({ direction: 'top', offset: [0, -10], className: 'ghi-tooltip' })
+          .setLatLng([hex.lat, hex.lon])
+          .setContent(
+            `<div style="font-family:Fira Code,monospace;font-size:11px;color:#f0ede6;background:rgba(14,15,21,0.92);padding:6px 10px;border-radius:6px;border:1px solid rgba(219,161,74,0.2)">` +
+            `<div style="font-size:10px;color:#78746b;margin-bottom:2px">${hex.id}</div>` +
+            `<div style="font-size:13px;font-weight:600">GHI <span style="color:${colorStr}">${currentGhi}</span> W/m²</div>` +
+            `</div>`
+          )
+          .addTo(map)
+      })
+
+      poly.on('mouseout', () => {
+        const g = ghiRef.current.get(hex.id) ?? 0
+        poly.setStyle({ color: 'rgba(219,161,74,0.15)', weight: 0.5, fillColor: ghiColor(g), fillOpacity: 0.35 })
+        if (tooltipRef.current) {
+          map.closeTooltip(tooltipRef.current)
+          tooltipRef.current = null
+        }
+      })
+
+      poly.addTo(group)
+      polys.set(hex.id, poly)
+    }
+
+    // Substation markers
+    for (const ss of SUBSTATIONS) {
+      const icon = L.divIcon({
+        className: '',
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
+        html: `
+          <div style="
+            transform: translate(-50%, -50%);
+            white-space: nowrap;
+            pointer-events: none;
+            text-align: center;
+          ">
+            <div style="
+              width: 10px; height: 10px;
+              background: #FF9800;
+              border: 1.5px solid rgba(255,255,255,0.6);
+              border-radius: 2px;
+              transform: rotate(45deg);
+              margin: 0 auto 4px;
+              box-shadow: 0 0 8px rgba(255,152,0,0.5);
+            "></div>
+            <div style="
+              font-family: 'Fira Code', monospace;
+              font-size: 9px;
+              color: #FF9800;
+              text-shadow: 0 0 4px rgba(0,0,0,0.8), 0 1px 2px rgba(0,0,0,0.9);
+              font-weight: 600;
+              letter-spacing: 0.3px;
+            ">${ss.name.replace('变电站', '')}</div>
+          </div>
+        `,
+      })
+      L.marker([ss.lat, ss.lon], { icon, interactive: false }).addTo(group)
+    }
+
+    polysRef.current = polys
+    builtRef.current = true
+
+    return () => {
+      if (tooltipRef.current) { map.closeTooltip(tooltipRef.current); tooltipRef.current = null }
+      map.removeLayer(group)
+      groupRef.current = null
+      polysRef.current.clear()
+      builtRef.current = false
+    }
+  }, [map])
+
+  // Show/hide — no destroy/recreate, instant toggle
+  useEffect(() => {
+    const group = groupRef.current
+    if (!group) return
+    if (visible) {
+      if (!map.hasLayer(group)) group.addTo(map)
+    } else {
+      if (map.hasLayer(group)) map.removeLayer(group)
+      if (tooltipRef.current) { map.closeTooltip(tooltipRef.current); tooltipRef.current = null }
+    }
+  }, [visible, map])
+
+  // Update fill colors when GHI values change (tick refresh)
+  useEffect(() => {
+    if (!visible) return
+    for (const [id, poly] of polysRef.current) {
+      const ghi = ghiValues.get(id) ?? 0
+      poly.setStyle({ fillColor: ghiColor(ghi) })
+    }
+  }, [ghiValues, visible])
+
+  return null
 })
