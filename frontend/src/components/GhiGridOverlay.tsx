@@ -38,10 +38,26 @@ function ghiColor(ghi: number): string {
   return `rgb(${Math.round(215 + 40 * s)}, ${Math.round(200 - 100 * s)}, ${Math.round(40 - 20 * s)})`
 }
 
-function computeMockGhi(): Map<string, number> {
+/** Fetch real satellite GHI from backend API, fallback to mock */
+async function fetchSatelliteGhi(): Promise<Map<string, number>> {
+  const m = new Map<string, number>()
+  try {
+    const base = `${import.meta.env.BASE_URL}api`
+    const res = await fetch(`${base}/satellite/ghi/latest`)
+    if (res.ok) {
+      const data = await res.json()
+      if (data.grids && data.grids.length > 0) {
+        for (const g of data.grids) {
+          m.set(g.grid_id, g.is_valid ? (g.ghi ?? 0) : 0)
+        }
+        return m
+      }
+    }
+  } catch { /* fallback to mock */ }
+
+  // Fallback: mock data when satellite unavailable
   const now = new Date()
   const hour = now.getHours() + now.getMinutes() / 60
-  const m = new Map<string, number>()
   for (const cell of GHI_GRID) {
     let ghi = 0
     if (hour >= 5.5 && hour <= 19.5) {
@@ -72,16 +88,25 @@ export default memo(function GhiGridOverlay({ visible, pvUsers }: Props) {
   const linesGroupRef = useRef<L.LayerGroup | null>(null)
   const [tick, setTick] = useState(0)
 
-  // Refresh mock GHI every 30 seconds
+  // Fetch satellite GHI every 60 seconds
   useEffect(() => {
     if (!visible) return
-    const timer = setInterval(() => setTick(t => t + 1), 30_000)
-    return () => clearInterval(timer)
+    let cancelled = false
+
+    const fetchData = async () => {
+      const data = await fetchSatelliteGhi()
+      if (!cancelled) {
+        ghiRef.current = data
+        setTick(t => t + 1) // trigger color update
+      }
+    }
+
+    fetchData() // immediate first fetch
+    const timer = setInterval(fetchData, 60_000)
+    return () => { cancelled = true; clearInterval(timer) }
   }, [visible])
 
-  // Compute GHI and keep ref current (fixes stale closure)
-  const ghiValues = useMemo(() => computeMockGhi(), [tick, visible])
-  ghiRef.current = ghiValues
+  const ghiValues = ghiRef.current
 
   // Build layer group ONCE, then show/hide — never destroy/recreate
   useEffect(() => {
