@@ -15,6 +15,7 @@ interface Props {
   selectedStreet: string | null
   outputRatio: number
   showGhiGrid?: boolean
+  playbackGhi?: Map<string, number> | null
 }
 
 const T = {
@@ -173,7 +174,7 @@ function StationTooltip({ user, color, currentOutput }: {
   )
 }
 
-export default memo(function MapView({ pvUsers, aggregations, warnings, weatherSummary, onStreetClick, selectedStreet, outputRatio, showGhiGrid }: Props) {
+export default memo(function MapView({ pvUsers, aggregations, warnings, weatherSummary, onStreetClick, selectedStreet, outputRatio, showGhiGrid, playbackGhi }: Props) {
   const weatherMap = useMemo(() => new Map(weatherSummary.map(w => [w.street, w])), [weatherSummary])
   const aggMap = useMemo(() => new Map(aggregations.map(a => [a.street, a])), [aggregations])
 
@@ -217,7 +218,7 @@ export default memo(function MapView({ pvUsers, aggregations, warnings, weatherS
         <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png" />
 
         {/* GHI Grid overlay */}
-        <GhiGridOverlay visible={!!showGhiGrid} pvUsers={pvUsers} />
+        <GhiGridOverlay visible={!!showGhiGrid} pvUsers={pvUsers} externalGhi={playbackGhi} />
 
         {/* Town boundaries — in GHI grid mode show outline only, no fill, no interaction */}
         {TOWN_POSITIONS.map(town => {

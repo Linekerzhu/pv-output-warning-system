@@ -10,6 +10,7 @@ import StreetPanel from './components/StreetPanel'
 import MobileTabBar from './components/MobileTabBar'
 import SideMenu, { type PanelType } from './components/SideMenu'
 import HistoryPanel from './components/HistoryPanel'
+import GhiPlayback from './components/GhiPlayback'
 
 type MobileTab = 'map' | 'chart' | 'alerts'
 
@@ -28,6 +29,12 @@ export default function App() {
 
   // Desktop: side panel state
   const [activePanel, setActivePanel] = useState<PanelType>(null)
+  const [playbackGhi, setPlaybackGhi] = useState<Map<string, number> | null>(null)
+  const [playbackLabel, setPlaybackLabel] = useState('')
+  const handlePlaybackFrame = useCallback((m: Map<string, number>, label: string) => {
+    setPlaybackGhi(m)
+    setPlaybackLabel(label)
+  }, [])
 
   // Mobile: tab + sheet state
   const [mobileTab, setMobileTab] = useState<MobileTab>('map')
@@ -158,6 +165,7 @@ export default function App() {
               selectedStreet={selectedStreet}
               outputRatio={outputRatio}
               showGhiGrid={activePanel === 'load'}
+              playbackGhi={activePanel === 'load' ? playbackGhi : null}
             />
           </div>
 
@@ -193,32 +201,11 @@ export default function App() {
                 />
               )}
               {activePanel === 'load' && (
-                <section className="h-full flex flex-col">
-                  <div className="flex items-center justify-between px-4 pt-4 pb-2">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-1 h-5 rounded-full" style={{ background: 'var(--solar-amber)', boxShadow: 'var(--glow-amber)' }} />
-                      <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 600, color: 'var(--text-bright)', margin: 0 }}>
-                        负荷预测
-                      </h2>
-                      <span className="tag-label" style={{ fontSize: 8 }}>GHI网格</span>
-                    </div>
-                    <button onClick={() => setActivePanel(null)} className="cursor-pointer w-11 h-11 flex items-center justify-center rounded-lg transition-colors active:scale-95 -mr-2"
-                      style={{ color: 'var(--text-muted)', fontSize: 16 }}>
-                      <span className="w-6 h-6 flex items-center justify-center rounded-lg" style={{ background: 'var(--bg-surface)' }}>&times;</span>
-                    </button>
-                  </div>
-                  <div className="flex-1 overflow-y-auto px-4 pb-4">
-                    <div style={{ fontFamily: 'var(--font-data)', fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.8 }}>
-                      <p style={{ marginBottom: 12 }}>
-                        GHI空间网格：<strong style={{ color: 'var(--text-bright)' }}>51格</strong>（~2.7km精度）
-                      </p>
-                      <p style={{ color: 'var(--text-muted)', fontSize: 10 }}>
-                        地图上的蜂窝网格显示各区域太阳辐照度(GHI)空间分布。
-                        颜色越暖表示GHI越高，光伏出力越大。
-                      </p>
-                    </div>
-                  </div>
-                </section>
+                <GhiPlayback
+                  onFrameChange={handlePlaybackFrame}
+                  onClose={() => { setActivePanel(null); setPlaybackGhi(null) }}
+                  pvUsers={pvUsers}
+                />
               )}
             </div>
           )}

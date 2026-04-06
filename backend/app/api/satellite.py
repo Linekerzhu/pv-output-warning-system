@@ -15,9 +15,9 @@ async def get_latest_ghi():
     """Get latest satellite GHI for all grid cells."""
     pool = get_pool()
     async with pool.acquire() as conn:
-        # Find latest obs_time
+        # Find latest obs_time (include nighttime data)
         latest = await conn.fetchval(
-            "SELECT MAX(obs_time) FROM satellite_ghi WHERE is_valid = TRUE"
+            "SELECT MAX(obs_time) FROM satellite_ghi"
         )
         if not latest:
             return {"obs_time": None, "grids": []}
@@ -77,6 +77,40 @@ async def get_ghi_history(grid_id: str, hours: int = 6):
             }
             for r in rows
         ],
+    }
+
+
+@router.get("/ghi/frames")
+async def get_ghi_frames(date: str):
+    """Get all hourly GHI frames for a date (for playback)."""
+    from datetime import date as date_type
+    target = date_type.fromisoformat(date)
+    day_start = datetime(target.year, target.month, target.day, tzinfo=SHANGHAI_TZ)
+    day_end = day_start + timedelta(days=1)
+
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(
+            """
+            SELECT obs_time, grid_id, ghi, is_valid
+            FROM satellite_ghi
+            WHERE obs_time >= $1 AND obs_time < $2
+            ORDER BY obs_time, grid_id
+            """,
+            day_start, day_end,
+        )
+
+    # Group by obs_time
+    frames: dict[str, list] = {}
+    for r in rows:
+        t = r["obs_time"].astimezone(SHANGHAI_TZ).strftime("%H:%M")
+        if t not in frames:
+            frames[t] = []
+        frames[t].append({"grid_id": r["grid_id"], "ghi": r["ghi"], "is_valid": r["is_valid"]})
+
+    return {
+        "date": date,
+        "frames": [{"time": t, "grids": grids} for t, grids in sorted(frames.items())],
     }
 
 

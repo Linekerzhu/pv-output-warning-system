@@ -16,6 +16,7 @@ export interface PVUser {
   capacity_kw: number
   substation_id: string | null
   feeder_id: string | null
+  grid_id: string | null
   status: string
 }
 

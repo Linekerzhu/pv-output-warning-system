@@ -8,6 +8,7 @@ import type { PVUser } from '../api'
 interface Props {
   visible: boolean
   pvUsers: PVUser[]
+  externalGhi?: Map<string, number> | null  // playback override
 }
 
 const HALF_W = HEX_S_LON * Math.sqrt(3) / 2
@@ -78,7 +79,7 @@ const HEX_VERTICES = GHI_GRID.map(cell => ({
   vertices: hexVertices(cell.lat, cell.lon),
 }))
 
-export default memo(function GhiGridOverlay({ visible, pvUsers }: Props) {
+export default memo(function GhiGridOverlay({ visible, pvUsers, externalGhi }: Props) {
   const map = useMap()
   const groupRef = useRef<L.LayerGroup | null>(null)
   const polysRef = useRef<Map<string, L.Polygon>>(new Map())
@@ -88,23 +89,28 @@ export default memo(function GhiGridOverlay({ visible, pvUsers }: Props) {
   const linesGroupRef = useRef<L.LayerGroup | null>(null)
   const [tick, setTick] = useState(0)
 
-  // Fetch satellite GHI every 60 seconds
+  // Use external GHI (playback) or fetch from API (live)
   useEffect(() => {
     if (!visible) return
-    let cancelled = false
+    if (externalGhi) {
+      ghiRef.current = externalGhi
+      setTick(t => t + 1)
+      return
+    }
 
+    let cancelled = false
     const fetchData = async () => {
       const data = await fetchSatelliteGhi()
       if (!cancelled) {
         ghiRef.current = data
-        setTick(t => t + 1) // trigger color update
+        setTick(t => t + 1)
       }
     }
 
-    fetchData() // immediate first fetch
+    fetchData()
     const timer = setInterval(fetchData, 60_000)
     return () => { cancelled = true; clearInterval(timer) }
-  }, [visible])
+  }, [visible, externalGhi])
 
   const ghiValues = ghiRef.current
 
