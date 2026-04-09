@@ -62,11 +62,13 @@ class WeatherRepo:
         async with pool.acquire() as conn:
             return await conn.fetch(
                 """
-                SELECT forecast_time, ghi, dni, dhi
-                FROM weather_forecast
-                WHERE station_id = $1
-                  AND forecast_time >= $2
-                  AND ghi IS NOT NULL
+                SELECT forecast_time, ghi, dni, dhi FROM (
+                    SELECT forecast_time, ghi, dni, dhi FROM weather_forecast
+                    WHERE station_id = $1 AND forecast_time >= $2 AND ghi IS NOT NULL
+                    UNION ALL
+                    SELECT time AS forecast_time, ghi, dni, dhi FROM weather_history
+                    WHERE station_id = $1 AND time >= $2 AND ghi IS NOT NULL
+                ) combined
                 ORDER BY forecast_time
                 LIMIT $3
                 """,

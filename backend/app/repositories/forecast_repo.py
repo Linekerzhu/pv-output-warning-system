@@ -9,17 +9,26 @@ from app.core.database import get_pool
 class ForecastRepo:
 
     async def get_street_power(self, station_id: str, start: datetime, end: datetime) -> list[dict]:
+        """Query forecast + archived history to avoid gaps for past hours."""
         pool = get_pool()
         async with pool.acquire() as conn:
             return await conn.fetch(
                 """
                 SELECT forecast_time, ghi, clearsky_ghi, weather_ratio,
                        power_kw, clearsky_power_kw, weather_text, weather_icon
-                FROM weather_forecast
-                WHERE station_id = $1
-                  AND ghi IS NOT NULL
-                  AND forecast_time >= $2
-                  AND forecast_time < $3
+                FROM (
+                    SELECT forecast_time, ghi, clearsky_ghi, weather_ratio,
+                           power_kw, clearsky_power_kw, weather_text, weather_icon
+                    FROM weather_forecast
+                    WHERE station_id = $1 AND ghi IS NOT NULL
+                      AND forecast_time >= $2 AND forecast_time < $3
+                    UNION ALL
+                    SELECT time AS forecast_time, ghi, clearsky_ghi, weather_ratio,
+                           power_kw, clearsky_power_kw, weather_text, weather_icon
+                    FROM weather_history
+                    WHERE station_id = $1 AND ghi IS NOT NULL
+                      AND time >= $2 AND time < $3
+                ) combined
                 ORDER BY forecast_time
                 """,
                 station_id,
@@ -47,7 +56,7 @@ class ForecastRepo:
             )
 
     async def get_district_total(self, start: datetime, end: datetime) -> tuple[list[dict], float]:
-        """Returns (hourly_totals, total_capacity_kw)."""
+        """Returns (hourly_totals, total_capacity_kw). Merges forecast + history."""
         pool = get_pool()
         async with pool.acquire() as conn:
             rows = await conn.fetch(
@@ -55,10 +64,15 @@ class ForecastRepo:
                 SELECT forecast_time,
                        SUM(power_kw) AS total_power_kw,
                        SUM(clearsky_power_kw) AS total_clearsky_power_kw
-                FROM weather_forecast
-                WHERE ghi IS NOT NULL
-                  AND forecast_time >= $1
-                  AND forecast_time < $2
+                FROM (
+                    SELECT forecast_time, station_id, power_kw, clearsky_power_kw, ghi
+                    FROM weather_forecast
+                    WHERE ghi IS NOT NULL AND forecast_time >= $1 AND forecast_time < $2
+                    UNION ALL
+                    SELECT time AS forecast_time, station_id, power_kw, clearsky_power_kw, ghi
+                    FROM weather_history
+                    WHERE ghi IS NOT NULL AND time >= $1 AND time < $2
+                ) combined
                 GROUP BY forecast_time
                 ORDER BY forecast_time
                 """,

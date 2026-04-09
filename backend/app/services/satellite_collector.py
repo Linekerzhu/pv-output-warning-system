@@ -16,10 +16,11 @@ from loguru import logger
 from app.core.constants import SHANGHAI_TZ
 from app.core.database import get_pool
 
-# P-Tree FTP credentials
-FTP_HOST = "ftp.ptree.jaxa.jp"
-FTP_USER = "linekerzhu_gmail.com"
-FTP_PASS = "SP+wari8"
+# P-Tree FTP credentials — from settings (.env)
+from app.core.config import settings as _cfg
+FTP_HOST = _cfg.JAXA_FTP_HOST
+FTP_USER = _cfg.JAXA_FTP_USER
+FTP_PASS = _cfg.JAXA_FTP_PASS
 
 # SWR → GHI correction factor (SWR covers 0.2-4.0μm, GHI is 0.3-2.8μm)
 GHI_CORRECTION = 0.98
@@ -197,35 +198,79 @@ class SatelliteCollector:
         valid_count = sum(1 for d in grid_data if d["is_valid"] and d["ghi"] > 0)
         return len(rows), valid_count
 
-    async def collect(self) -> int:
-        """Main entry point: download → parse → store. Returns rows written."""
-        target_time = self._latest_available_time()
-        logger.info(f"Satellite collect: target {target_time.strftime('%Y-%m-%d %H:%M')} UTC")
-
-        # Download in thread pool (blocking FTP)
+    async def _collect_one(self, target_time: datetime) -> int:
+        """Download, parse, store for one time slot. Returns rows written."""
         nc_path = await asyncio.to_thread(self._ftp_download, target_time)
         if nc_path is None:
             return 0
 
         try:
-            # Extract grid SWR
             grid_data = self._extract_grid_swr(nc_path, target_time)
-
-            # Save to DB
             total, valid = await self._save_to_db(grid_data)
 
-            # Log summary
             ghis = [d["ghi"] for d in grid_data if d["is_valid"] and d["ghi"] > 0]
             if ghis:
                 logger.info(
-                    f"Satellite: {total} grids, {valid} valid, "
-                    f"GHI avg={sum(ghis)/len(ghis):.0f} max={max(ghis):.0f} W/m²"
+                    f"Satellite {target_time.strftime('%H:%M')}UTC: {valid}/{total} valid, "
+                    f"GHI avg={sum(ghis)/len(ghis):.0f} max={max(ghis):.0f}"
                 )
             else:
-                logger.info(f"Satellite: {total} grids, {valid} valid (night or all cloudy)")
+                logger.info(f"Satellite {target_time.strftime('%H:%M')}UTC: {total} grids (night/cloudy)")
 
             return total
-
         finally:
-            # Always clean up temp file
             Path(nc_path).unlink(missing_ok=True)
+
+    async def _find_missing_slots(self, lookback_hours: int = 3) -> list[datetime]:
+        """Find 10-min slots in the last N hours missing from DB.
+
+        All datetime comparisons use tz-aware UTC to avoid timezone bugs.
+        """
+        pool = get_pool()
+        now_utc = datetime.now(timezone.utc)
+        start = now_utc - timedelta(hours=lookback_hours)
+
+        # Generate expected 10-min slots (all tz-aware UTC)
+        expected: list[datetime] = []
+        t = start.replace(minute=(start.minute // 10) * 10, second=0, microsecond=0)
+        while t <= now_utc - timedelta(minutes=20):
+            expected.append(t)
+            t += timedelta(minutes=10)
+
+        if not expected:
+            return []
+
+        # Query existing slots (asyncpg returns tz-aware datetimes for TIMESTAMPTZ)
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                "SELECT DISTINCT obs_time FROM satellite_ghi WHERE obs_time >= $1",
+                start,
+            )
+        existing: set[datetime] = set()
+        for r in rows:
+            dt = r["obs_time"]
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            existing.add(dt.astimezone(timezone.utc))
+
+        # Compare in UTC
+        missing = [t for t in expected if t not in existing]
+        return missing
+
+    async def collect(self) -> int:
+        """Main entry point: collect latest + backfill missing slots."""
+        total_rows = 0
+
+        # 1. Collect latest
+        target_time = self._latest_available_time()
+        total_rows += await self._collect_one(target_time)
+
+        # 2. Backfill missing slots (last 3 hours)
+        missing = await self._find_missing_slots(lookback_hours=3)
+        if missing:
+            logger.info(f"Satellite backfill: {len(missing)} missing slots to retry")
+            for slot in missing[:6]:  # Max 6 backfills per cycle to avoid overload
+                rows = await self._collect_one(slot)
+                total_rows += rows
+
+        return total_rows

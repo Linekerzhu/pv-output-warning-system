@@ -103,10 +103,29 @@ class DataCollector:
     # ── 2. Update GHI and power fields ─────────────────────
 
     async def _update_ghi_and_power(self) -> None:
-        """For each street, fetch solar radiation forecast, compute clearsky GHI,
-        weather_ratio, power, and UPDATE the weather_forecast rows."""
+        """Fetch GHI forecast from Open-Meteo (free) → compute power → update DB.
 
+        数据源优先级: Open-Meteo API (免费) → pvlib+云量兜底
+        和风辐照API: 0调用
+        """
         pool = get_pool()
+
+        # Step 1: Get GHI forecast from Open-Meteo (one call for district center)
+        radiation = await self.weather_service.get_solar_radiation(
+            lat=30.82, lon=121.20, hours=48
+        )
+        if radiation is None:
+            logger.error("GHI预测获取失败（Open-Meteo + 兜底均失败），跳过出力更新")
+            return
+
+        # Build {datetime: (ghi, dni, dhi)} from forecast
+        radiation_map: dict[datetime, tuple[float, float, float]] = {}
+        for sr in radiation.forecasts:
+            dt = datetime.strptime(sr.time, "%Y-%m-%d %H:%M").replace(tzinfo=SHANGHAI_TZ)
+            radiation_map[dt] = (sr.ghi, sr.dni, sr.dhi)
+        ghi_map = {dt: vals[0] for dt, vals in radiation_map.items()}
+
+        logger.info(f"GHI预测: {len(ghi_map)} 小时 (来源: Open-Meteo/兜底)")
 
         for street, info in JINSHAN_STREETS.items():
             station_id = STREET_TO_STATION_ID[street]
@@ -115,21 +134,6 @@ class DataCollector:
             # Get aggregated capacity
             agg = self.aggregation_service.get_street_aggregation(street)
             capacity_kw = agg.total_capacity_kw if agg else 0
-
-            # Fetch solar radiation forecast (48h)
-            radiation = await self.weather_service.get_solar_radiation(lat, lon, hours=48)
-            if radiation is None:
-                logger.warning(f"[{street}] 无法获取太阳辐射预报，跳过 GHI 更新")
-                continue
-
-            # Build {datetime: (ghi, dni, dhi)} mapping from radiation forecasts
-            radiation_map: dict[datetime, tuple[float, float, float]] = {}
-            for sr in radiation.forecasts:
-                # sr.time format: "2026-04-04 14:00"
-                dt = datetime.strptime(sr.time, "%Y-%m-%d %H:%M").replace(tzinfo=SHANGHAI_TZ)
-                radiation_map[dt] = (sr.ghi, sr.dni, sr.dhi)
-            # Backward-compatible alias
-            ghi_map = {dt: vals[0] for dt, vals in radiation_map.items()}
 
             # Collect all dates present in the radiation data
             dates_seen: set[date] = set()
@@ -157,7 +161,9 @@ class DataCollector:
                 power_kw = capacity_kw * ghi / 1000 * pr
                 clearsky_power_kw = capacity_kw * clearsky_ghi / 1000 * pr
 
-                _, dni, dhi = radiation_map[dt]
+                dni, dhi = 0.0, 0.0
+                if dt in radiation_map:
+                    _, dni, dhi = radiation_map[dt]
                 update_rows.append((
                     round(ghi, 1),
                     round(dni, 1),

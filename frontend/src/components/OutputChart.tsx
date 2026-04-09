@@ -130,7 +130,7 @@ export default memo(function OutputChart({ data, capacityKw, warnings }: Props) 
           </span>
           {hasRedWarnings && (
             <span className="data-value px-1.5 py-0.5" style={{
-              fontSize: 8, color: '#e06456', background: 'rgba(224,100,86,0.1)',
+              fontSize: 8, color: 'var(--solar-coral)', background: 'rgba(224,100,86,0.1)',
               borderRadius: 3, animation: 'pulse-warm 2s ease-in-out infinite',
             }}>
               ⚠ 异常波动
@@ -138,7 +138,7 @@ export default memo(function OutputChart({ data, capacityKw, warnings }: Props) 
           )}
           {!hasRedWarnings && hasOrangeWarnings && (
             <span className="data-value px-1.5 py-0.5" style={{
-              fontSize: 8, color: '#dba14a', background: 'rgba(219,161,74,0.1)', borderRadius: 3,
+              fontSize: 8, color: 'var(--solar-amber)', background: 'rgba(219,161,74,0.1)', borderRadius: 3,
             }}>
               注意波动
             </span>
@@ -158,17 +158,25 @@ export default memo(function OutputChart({ data, capacityKw, warnings }: Props) 
         </div>
       </div>
 
-      <ResponsiveContainer width="100%" height={110}>
-        <AreaChart data={chartData} margin={{ top: 2, right: 6, bottom: 0, left: 0 }}>
+      <ResponsiveContainer width="100%" height={130}>
+        <AreaChart data={chartData} margin={{ top: 4, right: 12, bottom: 18, left: 4 }}>
           <defs>
             <linearGradient id="gOutput" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#6ec472" stopOpacity={0.3} />
-              <stop offset="100%" stopColor="#6ec472" stopOpacity={0.02} />
+              <stop offset="0%" stopColor="var(--solar-green)" stopOpacity={0.3} />
+              <stop offset="100%" stopColor="var(--solar-green)" stopOpacity={0.02} />
             </linearGradient>
           </defs>
           <CartesianGrid stroke="var(--border-subtle)" strokeDasharray="2 8" />
-          <XAxis dataKey="label" stroke="var(--text-muted)" fontSize={8} tickLine={false} axisLine={false}
-            fontFamily="var(--font-data)" interval={2} />
+          <XAxis
+            dataKey="label"
+            stroke="var(--text-muted)"
+            fontSize={8}
+            tickLine={false}
+            axisLine={{ stroke: 'var(--border-subtle)' }}
+            fontFamily="var(--font-data)"
+            interval="preserveStartEnd"
+            tickMargin={6}
+          />
           <YAxis stroke="var(--text-muted)" fontSize={7} tickLine={false} axisLine={false} width={32}
             fontFamily="var(--font-data)" domain={[0, 'auto']}
             tickFormatter={v => v >= 1000 ? `${(v / 1000).toFixed(0)}M` : `${v}`} />
@@ -180,19 +188,19 @@ export default memo(function OutputChart({ data, capacityKw, warnings }: Props) 
           ))}
 
           <ReferenceLine y={capacityKw} stroke="var(--text-muted)" strokeDasharray="4 4" strokeWidth={0.5}
-            label={{ value: `装机${capLabel}`, position: 'right', fill: 'var(--text-muted)', fontSize: 7, fontFamily: 'var(--font-data)' }} />
+            label={{ value: `装机${capLabel}`, position: 'insideTopRight', fill: 'var(--text-muted)', fontSize: 7, fontFamily: 'var(--font-data)' }} />
 
           <Tooltip content={<CustomTooltipContent />} />
 
           <Area type="monotone" dataKey="output" name="预测出力"
-            stroke="#6ec472" fill="url(#gOutput)" strokeWidth={2}
+            stroke="var(--solar-green)" fill="url(#gOutput)" strokeWidth={2}
             dot={<CustomDot />}
-            activeDot={{ r: 3, fill: '#6ec472' }}
+            activeDot={{ r: 3, fill: 'var(--solar-green)' }}
           />
         </AreaChart>
       </ResponsiveContainer>
 
-      <div style={{ padding: '1px 10px 3px', fontFamily: 'var(--font-body)', fontSize: 8, color: 'var(--text-muted)' }}>
+      <div style={{ padding: '4px 10px 3px', fontFamily: 'var(--font-body)', fontSize: 8, color: 'var(--text-muted)' }}>
         出力 = 发电面积 × GHI（基于单晶硅210W/m²面积比功率）
       </div>
     </div>

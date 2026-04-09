@@ -1,5 +1,7 @@
 import { memo, useState, useCallback } from 'react'
 import { api, BacktestResult, WarningRecord } from '../api'
+import PanelHeader from './ui/PanelHeader'
+import PrimaryButton from './ui/PrimaryButton'
 
 interface Props {
   onClose: () => void
@@ -45,18 +47,13 @@ export default memo(function HistoryPanel({ onClose, onStreetClick }: Props) {
 
   return (
     <section aria-label="历史回测" className="h-full flex flex-col">
-      <div className="flex items-center justify-between px-4 pt-3 pb-1">
-        <div className="flex items-center gap-2.5">
-          <div className="w-1 h-5 rounded-full" style={{ background: 'var(--solar-gold)', boxShadow: '0 0 12px rgba(245,194,82,0.3)' }} />
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 12, fontWeight: 600, color: 'var(--text-bright)', margin: 0 }}>
-            历史回测
-          </h2>
-        </div>
-        <button onClick={onClose} aria-label="关闭" className="cursor-pointer w-11 h-11 flex items-center justify-center rounded-lg transition-colors active:scale-95 -mr-2"
-          style={{ color: 'var(--text-muted)', fontSize: 16 }}>
-          <span className="w-6 h-6 flex items-center justify-center rounded-lg" style={{ background: 'var(--bg-surface)' }}>&times;</span>
-        </button>
-      </div>
+      <PanelHeader
+        title="历史回测"
+        accent="var(--solar-gold)"
+        glow="0 0 12px rgba(245,194,82,0.3)"
+        onClose={onClose}
+        closeAriaLabel="关闭历史回测面板"
+      />
 
       <div className="px-4 pb-2">
         <div style={{ fontFamily: 'var(--font-body)', fontSize: 9, color: 'var(--text-muted)' }}>
@@ -65,31 +62,30 @@ export default memo(function HistoryPanel({ onClose, onStreetClick }: Props) {
       </div>
 
       <div className="px-4 pb-3 flex items-center gap-2">
+        <label htmlFor="backtest-date" className="sr-only">回测日期</label>
         <input
+          id="backtest-date"
           type="date"
           value={selectedDate}
           min={formatDate(minDate)}
           max={formatDate(new Date(today.getTime() - 86400000))}
           onChange={e => setSelectedDate(e.target.value)}
-          className="flex-1 px-2 py-1.5 rounded"
+          aria-label="选择回测日期"
+          className="flex-1 rounded"
           style={{
             fontFamily: 'var(--font-data)', fontSize: 11,
             background: 'var(--bg-surface)', color: 'var(--text-bright)',
             border: '1px solid var(--border-subtle)', outline: 'none',
+            padding: '8px 10px', minHeight: 36, textAlign: 'center',
           }}
         />
-        <button
+        <PrimaryButton
           onClick={() => runBacktest(selectedDate)}
           disabled={loading}
-          className="px-3 py-1.5 rounded transition-all active:scale-95"
-          style={{
-            fontFamily: 'var(--font-display)', fontSize: 10, fontWeight: 600,
-            background: 'var(--solar-amber)', color: 'var(--bg-deep)',
-            border: 'none', cursor: loading ? 'wait' : 'pointer',
-            opacity: loading ? 0.6 : 1,
-          }}>
+          ariaLabel="运行回测"
+        >
           {loading ? '分析中...' : '运行回测'}
-        </button>
+        </PrimaryButton>
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 pb-3">
