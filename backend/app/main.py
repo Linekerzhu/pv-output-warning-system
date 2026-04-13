@@ -89,9 +89,25 @@ async def lifespan(app: FastAPI):
     scheduler.start()
     logger.info(f"Scheduler started: hourly, 10min satellite, daily at 01:00/02:00")
 
-    # Run initial data collection on startup
+    # Run initial data collection on startup, but ONLY if forecast data is stale.
+    # Guard against rapid restarts burning QWeather API quota: if the most recent
+    # forecast row was upserted within the past hour, skip — the scheduler will
+    # fire on its normal cadence.
     try:
-        await data_collector.collect_and_evaluate()
+        from app.core.database import get_pool
+        pool = get_pool()
+        async with pool.acquire() as conn:
+            last_update = await conn.fetchval(
+                "SELECT max(updated_at) FROM weather_forecast"
+            )
+        from datetime import datetime, timezone, timedelta
+        now = datetime.now(timezone.utc)
+        if last_update is None or (now - last_update) > timedelta(minutes=55):
+            logger.info(f"Forecast stale (last_update={last_update}), running initial collection")
+            await data_collector.collect_and_evaluate()
+        else:
+            age = (now - last_update).total_seconds() / 60
+            logger.info(f"Forecast fresh ({age:.1f}min old), skipping initial collection")
     except Exception as e:
         logger.error(f"Initial data collection failed: {e}")
 
